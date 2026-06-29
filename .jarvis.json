@@ -1,0 +1,11 @@
+{
+  "id": "historic-map",
+  "name": "Historic America Map",
+  "description": "Interactive map of presidential libraries, grave sites, national memorials, parks, and monuments — filterable, searchable, and sortable by distance.",
+  "category": "standalone",
+  "status": { "prod": "live", "dev": "live" },
+  "deploy": {
+    "prod": { "url": "https://historic-map.dabrewer.dev/" },
+    "dev":  { "url": "https://historic-map.dabrewer.dev/dev/" }
+  }
+}
