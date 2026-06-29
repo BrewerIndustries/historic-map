@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Historic America Map</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -16,70 +19,88 @@
     --text: #e8e8f0;
     --text-dim: #888899;
     --accent: #4a9eff;
-    --c-library: #f59e0b;
-    --c-grave: #a78bfa;
+    --c-library:  #f59e0b;
+    --c-grave:    #a78bfa;
     --c-memorial: #34d399;
-    --c-park: #60a5fa;
+    --c-park:     #60a5fa;
     --c-monument: #f87171;
   }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* Header */
+  /* ── Header ── */
   header { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; flex-shrink: 0; }
-  header h1 { font-size: 1.1rem; font-weight: 700; color: var(--text); white-space: nowrap; }
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .filter-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 0.78rem; user-select: none; transition: opacity 0.15s; }
+  header h1 { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .filter-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 0.78rem; user-select: none; transition: opacity 0.15s, border-color 0.15s; }
   .filter-chip input { display: none; }
   .filter-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .filter-chip.off { opacity: 0.4; }
+  .filter-chip.off { opacity: 0.35; }
   .filter-chip:hover { border-color: var(--accent); }
 
-  /* Layout */
+  /* ── Layout ── */
   .app { display: flex; flex: 1; overflow: hidden; }
-
-  /* Map pane */
   #map { flex: 1; min-width: 0; background: #1a1f2e; }
 
-  /* Sidebar */
-  .sidebar { width: 380px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid var(--border); background: var(--surface); overflow: hidden; }
+  /* ── Sidebar ── */
+  .sidebar { width: 390px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid var(--border); background: var(--surface); overflow: hidden; }
   .sidebar-controls { padding: 10px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-  .sidebar-controls label { font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 2px; }
-  .distance-row { display: flex; gap: 6px; align-items: flex-end; }
-  .distance-row input { flex: 1; padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.82rem; }
-  .distance-row input:focus { outline: none; border-color: var(--accent); }
-  .btn { padding: 5px 12px; background: var(--accent); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
-  .btn:hover { opacity: 0.85; }
-  .btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  .sort-row { display: flex; gap: 6px; align-items: center; }
-  .sort-row select { flex: 1; padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.82rem; }
-  .sort-row select:focus { outline: none; border-color: var(--accent); }
+  .sidebar-controls label { font-size: 0.74rem; color: var(--text-dim); display: block; margin-bottom: 2px; }
+  .row { display: flex; gap: 6px; align-items: flex-end; }
+  .row input, .row select { flex: 1; padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.82rem; }
+  .row input:focus, .row select:focus { outline: none; border-color: var(--accent); }
   .search-input { width: 100%; padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.82rem; }
   .search-input:focus { outline: none; border-color: var(--accent); }
-  .count-label { font-size: 0.72rem; color: var(--text-dim); text-align: right; padding: 0 2px; }
+  .btn { padding: 5px 12px; background: var(--accent); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; flex-shrink: 0; }
+  .btn:hover { opacity: 0.85; }
+  .btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .count-label { font-size: 0.72rem; color: var(--text-dim); text-align: right; }
 
-  /* List */
+  /* ── List ── */
   .list-wrap { flex: 1; overflow-y: auto; }
   .list-wrap::-webkit-scrollbar { width: 6px; }
   .list-wrap::-webkit-scrollbar-track { background: transparent; }
   .list-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .site-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; display: flex; gap: 10px; align-items: flex-start; }
-  .site-item:hover { background: var(--surface2); }
-  .site-item.active { background: #1e2a3a; }
-  .site-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-  .site-info { flex: 1; min-width: 0; }
-  .site-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .site-meta { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .site-dist { font-size: 0.72rem; color: var(--accent); white-space: nowrap; margin-left: auto; padding-top: 4px; flex-shrink: 0; }
 
-  /* Popup */
+  .site-item { padding: 9px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; display: flex; gap: 9px; align-items: flex-start; }
+  .site-item:hover { background: var(--surface2); }
+  .site-item.active { background: #1a2535; }
+
+  /* Multi-dot indicator for co-located items */
+  .item-dots { display: flex; flex-direction: column; gap: 3px; padding-top: 3px; flex-shrink: 0; }
+  .item-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+  .site-info { flex: 1; min-width: 0; }
+  .site-name { font-size: 0.84rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .site-meta { font-size: 0.71rem; color: var(--text-dim); margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .also-tag { background: rgba(255,255,255,0.07); border: 1px solid var(--border); border-radius: 10px; padding: 1px 6px; font-size: 0.68rem; color: var(--text-dim); white-space: nowrap; }
+  .site-dist { font-size: 0.72rem; color: var(--accent); white-space: nowrap; margin-left: auto; padding-top: 3px; flex-shrink: 0; }
+
+  /* ── Popup ── */
   .leaflet-popup-content-wrapper { background: #1e1e2a; border: 1px solid var(--border); border-radius: 8px; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
   .leaflet-popup-tip { background: #1e1e2a; }
-  .leaflet-popup-content { margin: 12px 14px; }
-  .popup-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 4px; }
-  .popup-type { font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; display: inline-block; margin-bottom: 6px; font-weight: 600; }
-  .popup-info { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
-  .popup-link { color: var(--accent); text-decoration: none; font-size: 0.78rem; display: inline-block; margin-top: 6px; }
+  .leaflet-popup-content { margin: 12px 14px; min-width: 220px; }
+  .popup-state { font-size: 0.7rem; color: var(--text-dim); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 8px; }
+  .popup-site + .popup-site { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .popup-title { font-weight: 700; font-size: 0.88rem; margin-bottom: 4px; line-height: 1.3; }
+  .popup-type { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; display: inline-block; margin-bottom: 5px; font-weight: 600; }
+  .popup-info { font-size: 0.76rem; color: var(--text-dim); line-height: 1.5; }
+  .popup-link { color: var(--accent); text-decoration: none; font-size: 0.76rem; display: inline-block; margin-top: 5px; }
   .popup-link:hover { text-decoration: underline; }
+
+  /* ── Cluster ── */
+  .custom-cluster { background: transparent !important; border: none !important; }
+  .cluster-inner {
+    width: 34px; height: 34px;
+    background: rgba(30, 35, 60, 0.92);
+    border: 2px solid rgba(74, 158, 255, 0.6);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 0.82rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  }
+  /* hide default markercluster styles */
+  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background: transparent !important; }
+  .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background: transparent !important; }
 
   @media (max-width: 700px) {
     .app { flex-direction: column; }
@@ -105,7 +126,7 @@
       </div>
       <div>
         <label>Sort by distance from</label>
-        <div class="distance-row">
+        <div class="row">
           <input id="originInput" type="text" placeholder="City, State or ZIP…" />
           <button class="btn" onclick="geocodeOrigin()">Go</button>
           <button class="btn secondary" onclick="useMyLocation()">📍</button>
@@ -113,12 +134,12 @@
       </div>
       <div>
         <label>Sort order</label>
-        <div class="sort-row">
+        <div class="row">
           <select id="sortSelect" onchange="renderList()">
             <option value="name">Name (A–Z)</option>
             <option value="state">State (A–Z)</option>
-            <option value="dist">Distance (nearest first)</option>
             <option value="type">Type</option>
+            <option value="dist">Distance (nearest first)</option>
           </select>
         </div>
       </div>
@@ -155,80 +176,76 @@ const SITES = [
   { id:13, name: 'George W. Bush Presidential Library & Museum',        type:'library', state:'TX', lat:32.8409, lng:-96.7847, note:'Dallas, TX (SMU campus). Freedom Hall.', nara:true, url:'https://www.georgewbushlibrary.gov' },
   { id:14, name: 'Barack Obama Presidential Center',                    type:'library', state:'IL', lat:41.7870, lng:-87.5977, note:'Chicago, IL (Jackson Park). Under construction as of 2024.', nara:false, url:'https://www.obama.org/presidential-center/' },
   { id:15, name: 'Donald J. Trump Presidential Library',                type:'library', state:'FL', lat:26.4834, lng:-80.1427, note:'West Palm Beach, FL. Planned; not yet opened.', nara:false, url:'' },
-
   // ── NON-NARA PRESIDENTIAL LIBRARIES / MUSEUMS ────────────────────────────
   { id:16, name: 'Abraham Lincoln Presidential Library & Museum',       type:'library', state:'IL', lat:39.8009, lng:-89.6497, note:'Springfield, IL. State-operated by ALPLM.', nara:false, url:'https://presidentlincoln.illinois.gov' },
   { id:17, name: 'Rutherford B. Hayes Presidential Library & Museums',  type:'library', state:'OH', lat:41.3997, lng:-83.0038, note:'Fremont, OH. First presidential library in the US (1916).', nara:false, url:'https://www.rbhayes.org' },
   { id:18, name: 'Woodrow Wilson Presidential Library',                 type:'library', state:'VA', lat:37.9924, lng:-79.4403, note:'Staunton, VA. Wilson\'s birthplace.', nara:false, url:'https://www.woodrowwilson.org' },
   { id:19, name: 'Calvin Coolidge Presidential Library & Museum',       type:'library', state:'VT', lat:43.9862, lng:-72.5189, note:'Plymouth Notch, VT. Part of historic homestead.', nara:false, url:'https://www.calvin-coolidge.org' },
   { id:20, name: 'Herbert Hoover Presidential Library & Museum',        type:'library', state:'IA', lat:41.6622, lng:-91.3430, note:'West Branch, IA. NARA-administered. Hoover\'s birthplace on grounds.', nara:true, url:'https://hoover.archives.gov' },
-
   // ── PRESIDENTIAL GRAVE SITES ──────────────────────────────────────────────
-  { id:101, name: 'George Washington — Mount Vernon',           type:'grave', state:'VA', lat:38.7073, lng:-77.0861, note:'Family vault at Mount Vernon estate, Alexandria, VA.' },
-  { id:102, name: 'John Adams — United First Parish Church',    type:'grave', state:'MA', lat:42.2529, lng:-71.0048, note:'Quincy, MA. John Adams and John Quincy Adams buried here.' },
-  { id:103, name: 'Thomas Jefferson — Monticello',              type:'grave', state:'VA', lat:38.0087, lng:-78.4568, note:'On grounds of Monticello, Charlottesville, VA.' },
-  { id:104, name: 'James Madison — Montpelier',                 type:'grave', state:'VA', lat:38.2215, lng:-78.1664, note:'Family cemetery at Montpelier, Orange, VA.' },
-  { id:105, name: 'James Monroe — Hollywood Cemetery',          type:'grave', state:'VA', lat:37.5354, lng:-77.4637, note:'Richmond, VA. Also James K. Polk, John Tyler buried here.' },
-  { id:106, name: 'John Quincy Adams — United First Parish Church', type:'grave', state:'MA', lat:42.2529, lng:-71.0048, note:'Quincy, MA. Buried alongside father John Adams.' },
-  { id:107, name: 'Andrew Jackson — The Hermitage',             type:'grave', state:'TN', lat:36.2003, lng:-86.6147, note:'Nashville, TN. Jackson buried in garden with wife Rachel.' },
-  { id:108, name: 'Martin Van Buren — Kinderhook Reformed Church', type:'grave', state:'NY', lat:42.3924, lng:-73.6946, note:'Kinderhook, NY.' },
-  { id:109, name: 'William Henry Harrison — North Bend',        type:'grave', state:'OH', lat:39.1420, lng:-84.7400, note:'North Bend, OH. Died after 31 days in office.' },
-  { id:110, name: 'John Tyler — Hollywood Cemetery',            type:'grave', state:'VA', lat:37.5354, lng:-77.4637, note:'Richmond, VA. Only president buried outside the U.S. originally (returned 1862).' },
-  { id:111, name: 'James K. Polk — Tennessee State Capitol',    type:'grave', state:'TN', lat:36.1660, lng:-86.7844, note:'Nashville, TN. Moved from Polk Place to State Capitol grounds.' },
-  { id:112, name: 'Zachary Taylor — Zachary Taylor National Cemetery', type:'grave', state:'KY', lat:38.2317, lng:-85.6588, note:'Louisville, KY. Small national cemetery on family farm.' },
-  { id:113, name: 'Millard Fillmore — Forest Lawn Cemetery',    type:'grave', state:'NY', lat:42.9073, lng:-78.8461, note:'Buffalo, NY.' },
-  { id:114, name: 'Franklin Pierce — Old North Cemetery',       type:'grave', state:'NH', lat:43.2069, lng:-71.5351, note:'Concord, NH.' },
-  { id:115, name: 'James Buchanan — Woodward Hill Cemetery',    type:'grave', state:'PA', lat:40.0327, lng:-76.3059, note:'Lancaster, PA.' },
-  { id:116, name: 'Abraham Lincoln — Oak Ridge Cemetery',       type:'grave', state:'IL', lat:39.8135, lng:-89.6538, note:'Springfield, IL. Lincoln Tomb State Historic Site.' },
-  { id:117, name: 'Andrew Johnson — Andrew Johnson National Cemetery', type:'grave', state:'TN', lat:36.1565, lng:-82.8368, note:'Greeneville, TN. Part of Andrew Johnson NHS.' },
+  { id:101, name: 'George Washington — Mount Vernon',                   type:'grave', state:'VA', lat:38.7073, lng:-77.0861, note:'Family vault at Mount Vernon estate, Alexandria, VA.' },
+  { id:102, name: 'John Adams — United First Parish Church',            type:'grave', state:'MA', lat:42.2529, lng:-71.0048, note:'Quincy, MA. John Adams and John Quincy Adams buried here.' },
+  { id:103, name: 'Thomas Jefferson — Monticello',                      type:'grave', state:'VA', lat:38.0087, lng:-78.4568, note:'On grounds of Monticello, Charlottesville, VA.' },
+  { id:104, name: 'James Madison — Montpelier',                         type:'grave', state:'VA', lat:38.2215, lng:-78.1664, note:'Family cemetery at Montpelier, Orange, VA.' },
+  { id:105, name: 'James Monroe — Hollywood Cemetery',                  type:'grave', state:'VA', lat:37.5354, lng:-77.4637, note:'Richmond, VA. John Tyler also buried here.' },
+  { id:106, name: 'John Quincy Adams — United First Parish Church',     type:'grave', state:'MA', lat:42.2529, lng:-71.0048, note:'Quincy, MA. Buried alongside father John Adams.' },
+  { id:107, name: 'Andrew Jackson — The Hermitage',                     type:'grave', state:'TN', lat:36.2003, lng:-86.6147, note:'Nashville, TN. Jackson buried in garden with wife Rachel.' },
+  { id:108, name: 'Martin Van Buren — Kinderhook Reformed Church',      type:'grave', state:'NY', lat:42.3924, lng:-73.6946, note:'Kinderhook, NY.' },
+  { id:109, name: 'William Henry Harrison — North Bend',                type:'grave', state:'OH', lat:39.1420, lng:-84.7400, note:'North Bend, OH. Died after 31 days in office.' },
+  { id:110, name: 'John Tyler — Hollywood Cemetery',                    type:'grave', state:'VA', lat:37.5354, lng:-77.4637, note:'Richmond, VA. James Monroe also buried here.' },
+  { id:111, name: 'James K. Polk — Tennessee State Capitol',            type:'grave', state:'TN', lat:36.1660, lng:-86.7844, note:'Nashville, TN. Moved from Polk Place to State Capitol grounds.' },
+  { id:112, name: 'Zachary Taylor — Zachary Taylor National Cemetery',  type:'grave', state:'KY', lat:38.2317, lng:-85.6588, note:'Louisville, KY. Small national cemetery on family farm.' },
+  { id:113, name: 'Millard Fillmore — Forest Lawn Cemetery',            type:'grave', state:'NY', lat:42.9073, lng:-78.8461, note:'Buffalo, NY.' },
+  { id:114, name: 'Franklin Pierce — Old North Cemetery',               type:'grave', state:'NH', lat:43.2069, lng:-71.5351, note:'Concord, NH.' },
+  { id:115, name: 'James Buchanan — Woodward Hill Cemetery',            type:'grave', state:'PA', lat:40.0327, lng:-76.3059, note:'Lancaster, PA.' },
+  { id:116, name: 'Abraham Lincoln — Oak Ridge Cemetery',               type:'grave', state:'IL', lat:39.8135, lng:-89.6538, note:'Springfield, IL. Lincoln Tomb State Historic Site.' },
+  { id:117, name: 'Andrew Johnson — Andrew Johnson National Cemetery',  type:'grave', state:'TN', lat:36.1565, lng:-82.8368, note:'Greeneville, TN. Part of Andrew Johnson NHS.' },
   { id:118, name: 'Ulysses S. Grant — General Grant National Memorial', type:'grave', state:'NY', lat:40.8090, lng:-73.9630, note:'Riverside Drive, NYC. Largest mausoleum in North America.' },
-  { id:119, name: 'Rutherford B. Hayes — Spiegel Grove',        type:'grave', state:'OH', lat:41.3997, lng:-83.0038, note:'Fremont, OH. On grounds of Hayes Presidential Center.' },
-  { id:120, name: 'James A. Garfield — Lake View Cemetery',     type:'grave', state:'OH', lat:41.5284, lng:-81.5808, note:'Cleveland, OH. Garfield Memorial monument.' },
-  { id:121, name: 'Chester A. Arthur — Albany Rural Cemetery',  type:'grave', state:'NY', lat:42.7267, lng:-73.7595, note:'Menands, NY.' },
-  { id:122, name: 'Grover Cleveland — Princeton Cemetery',      type:'grave', state:'NJ', lat:40.3493, lng:-74.6564, note:'Princeton, NJ.' },
-  { id:123, name: 'Benjamin Harrison — Crown Hill Cemetery',    type:'grave', state:'IN', lat:39.8329, lng:-86.1912, note:'Indianapolis, IN.' },
-  { id:124, name: 'William McKinley — McKinley National Memorial', type:'grave', state:'OH', lat:40.8009, lng:-81.3729, note:'Canton, OH. Large domed mausoleum.' },
-  { id:125, name: 'Theodore Roosevelt — Youngs Memorial Cemetery', type:'grave', state:'NY', lat:40.8760, lng:-73.4473, note:'Oyster Bay, NY.' },
-  { id:126, name: 'William Howard Taft — Arlington National Cemetery', type:'grave', state:'VA', lat:38.8796, lng:-77.0706, note:'Arlington, VA. Taft and JFK the only presidents buried at Arlington.' },
-  { id:127, name: 'Woodrow Wilson — Washington National Cathedral', type:'grave', state:'DC', lat:38.9309, lng:-77.0710, note:'Washington, DC. Only president buried in Washington DC.' },
-  { id:128, name: 'Warren G. Harding — Harding Tomb',           type:'grave', state:'OH', lat:40.5612, lng:-82.9785, note:'Marion, OH. Marble monument.' },
-  { id:129, name: 'Calvin Coolidge — Plymouth Notch Cemetery',  type:'grave', state:'VT', lat:43.5217, lng:-72.7117, note:'Plymouth Notch, VT. Simple headstone.' },
-  { id:130, name: 'Herbert Hoover — Herbert Hoover NHS',        type:'grave', state:'IA', lat:41.6622, lng:-91.3430, note:'West Branch, IA. Buried on grounds of presidential library.' },
-  { id:131, name: 'Franklin D. Roosevelt — FDR Library & Museum', type:'grave', state:'NY', lat:41.7714, lng:-73.9366, note:'Hyde Park, NY. Buried in Rose Garden of Springwood estate.' },
-  { id:132, name: 'Harry S. Truman — Truman Library',           type:'grave', state:'MO', lat:39.1097, lng:-94.4192, note:'Independence, MO. Courtyard of the Truman Library.' },
+  { id:119, name: 'Rutherford B. Hayes — Spiegel Grove',                type:'grave', state:'OH', lat:41.3997, lng:-83.0038, note:'Fremont, OH. On grounds of Hayes Presidential Center.' },
+  { id:120, name: 'James A. Garfield — Lake View Cemetery',             type:'grave', state:'OH', lat:41.5284, lng:-81.5808, note:'Cleveland, OH. Garfield Memorial monument.' },
+  { id:121, name: 'Chester A. Arthur — Albany Rural Cemetery',          type:'grave', state:'NY', lat:42.7267, lng:-73.7595, note:'Menands, NY.' },
+  { id:122, name: 'Grover Cleveland — Princeton Cemetery',              type:'grave', state:'NJ', lat:40.3493, lng:-74.6564, note:'Princeton, NJ.' },
+  { id:123, name: 'Benjamin Harrison — Crown Hill Cemetery',            type:'grave', state:'IN', lat:39.8329, lng:-86.1912, note:'Indianapolis, IN.' },
+  { id:124, name: 'William McKinley — McKinley National Memorial',      type:'grave', state:'OH', lat:40.8009, lng:-81.3729, note:'Canton, OH. Large domed mausoleum.' },
+  { id:125, name: 'Theodore Roosevelt — Youngs Memorial Cemetery',      type:'grave', state:'NY', lat:40.8760, lng:-73.4473, note:'Oyster Bay, NY.' },
+  { id:126, name: 'William Howard Taft — Arlington National Cemetery',  type:'grave', state:'VA', lat:38.8796, lng:-77.0706, note:'Arlington, VA. Taft and JFK the only presidents buried at Arlington.' },
+  { id:127, name: 'Woodrow Wilson — Washington National Cathedral',     type:'grave', state:'DC', lat:38.9309, lng:-77.0710, note:'Washington, DC. Only president buried in Washington DC.' },
+  { id:128, name: 'Warren G. Harding — Harding Tomb',                  type:'grave', state:'OH', lat:40.5612, lng:-82.9785, note:'Marion, OH. Marble monument.' },
+  { id:129, name: 'Calvin Coolidge — Plymouth Notch Cemetery',          type:'grave', state:'VT', lat:43.5217, lng:-72.7117, note:'Plymouth Notch, VT. Simple headstone.' },
+  { id:130, name: 'Herbert Hoover — Herbert Hoover NHS',                type:'grave', state:'IA', lat:41.6622, lng:-91.3430, note:'West Branch, IA. Buried on grounds of presidential library.' },
+  { id:131, name: 'Franklin D. Roosevelt — Hyde Park',                  type:'grave', state:'NY', lat:41.7714, lng:-73.9366, note:'Hyde Park, NY. Buried in Rose Garden of Springwood estate, beside FDR Library.' },
+  { id:132, name: 'Harry S. Truman — Truman Library',                  type:'grave', state:'MO', lat:39.1097, lng:-94.4192, note:'Independence, MO. Courtyard of the Truman Library.' },
   { id:133, name: 'Dwight D. Eisenhower — Eisenhower Presidential Center', type:'grave', state:'KS', lat:38.7217, lng:-97.2214, note:'Abilene, KS. Place of Meditation chapel on library grounds.' },
-  { id:134, name: 'John F. Kennedy — Arlington National Cemetery', type:'grave', state:'VA', lat:38.8796, lng:-77.0706, note:'Arlington, VA. Eternal Flame. Most visited site in national cemetery.' },
-  { id:135, name: 'Lyndon B. Johnson — LBJ Ranch',              type:'grave', state:'TX', lat:30.2467, lng:-98.6342, note:'Stonewall, TX. Family cemetery at "Texas White House".' },
-  { id:136, name: 'Richard Nixon — Nixon Presidential Library',  type:'grave', state:'CA', lat:33.8817, lng:-117.9625, note:'Yorba Linda, CA. Buried alongside wife Pat Nixon.' },
+  { id:134, name: 'John F. Kennedy — Arlington National Cemetery',      type:'grave', state:'VA', lat:38.8796, lng:-77.0706, note:'Arlington, VA. Eternal Flame. Most visited site in national cemetery.' },
+  { id:135, name: 'Lyndon B. Johnson — LBJ Ranch',                     type:'grave', state:'TX', lat:30.2467, lng:-98.6342, note:'Stonewall, TX. Family cemetery at "Texas White House".' },
+  { id:136, name: 'Richard Nixon — Nixon Presidential Library',         type:'grave', state:'CA', lat:33.8817, lng:-117.9625, note:'Yorba Linda, CA. Buried alongside wife Pat Nixon.' },
   { id:137, name: 'Gerald R. Ford — Gerald R. Ford Presidential Museum', type:'grave', state:'MI', lat:42.9659, lng:-85.6769, note:'Grand Rapids, MI. Museum grounds.' },
-  { id:138, name: 'Jimmy Carter — Plains, Georgia',             type:'grave', state:'GA', lat:32.0348, lng:-84.3974, note:'Plains, GA. Carter family home, deceased November 2024.' },
-  { id:139, name: 'Ronald Reagan — Reagan Presidential Library', type:'grave', state:'CA', lat:34.2520, lng:-118.8295, note:'Simi Valley, CA. Overlooking Simi Valley.' },
-  { id:140, name: 'George H.W. Bush — Bush Presidential Library', type:'grave', state:'TX', lat:30.6180, lng:-96.3364, note:'College Station, TX. Buried alongside Barbara Bush and Robin.' },
-  { id:141, name: 'George W. Bush — Still Living', type:'grave', state:'TX', lat:32.8409, lng:-96.7847, note:'Still living as of 2024.' },
-
+  { id:138, name: 'Jimmy Carter — Plains, Georgia',                     type:'grave', state:'GA', lat:32.0348, lng:-84.3974, note:'Plains, GA. Carter family home, deceased November 2024.' },
+  { id:139, name: 'Ronald Reagan — Reagan Presidential Library',        type:'grave', state:'CA', lat:34.2520, lng:-118.8295, note:'Simi Valley, CA. Overlooking Simi Valley.' },
+  { id:140, name: 'George H.W. Bush — Bush Presidential Library',       type:'grave', state:'TX', lat:30.6180, lng:-96.3364, note:'College Station, TX. Buried alongside Barbara Bush and Robin.' },
+  { id:141, name: 'George W. Bush — Still Living',                      type:'grave', state:'TX', lat:32.8409, lng:-96.7847, note:'Still living as of 2024.' },
   // ── NATIONAL MEMORIALS ────────────────────────────────────────────────────
-  { id:201, name: 'Lincoln Memorial',                            type:'memorial', state:'DC', lat:38.8893, lng:-77.0502, note:'Washington, DC. Dedicated 1922. Daniel Chester French sculpture.' },
-  { id:202, name: 'Washington Monument',                         type:'memorial', state:'DC', lat:38.8895, lng:-77.0353, note:'Washington, DC. Tallest obelisk in the world at completion (555 ft).' },
-  { id:203, name: 'Jefferson Memorial',                          type:'memorial', state:'DC', lat:38.8814, lng:-77.0365, note:'Washington, DC. Tidal Basin. Dedicated 1943.' },
-  { id:204, name: 'Vietnam Veterans Memorial',                   type:'memorial', state:'DC', lat:38.8913, lng:-77.0476, note:'Washington, DC. Maya Lin design, 1982. 58,000+ names.' },
-  { id:205, name: 'Korean War Veterans Memorial',                type:'memorial', state:'DC', lat:38.8873, lng:-77.0474, note:'Washington, DC. 19 stainless steel statues. Dedicated 1995.' },
-  { id:206, name: 'World War II Memorial',                       type:'memorial', state:'DC', lat:38.8893, lng:-77.0403, note:'Washington, DC. National Mall. Dedicated 2004.' },
-  { id:207, name: 'Martin Luther King Jr. Memorial',             type:'memorial', state:'DC', lat:38.8864, lng:-77.0442, note:'Washington, DC. "Stone of Hope." Dedicated 2011.' },
-  { id:208, name: 'Franklin Delano Roosevelt Memorial',          type:'memorial', state:'DC', lat:38.8832, lng:-77.0443, note:'Washington, DC. 4 outdoor rooms representing his terms.' },
-  { id:209, name: 'Theodore Roosevelt Island',                   type:'memorial', state:'DC', lat:38.8963, lng:-77.0650, note:'Washington, DC. Island memorial in Potomac River.' },
-  { id:210, name: 'National Mall',                               type:'memorial', state:'DC', lat:38.8900, lng:-77.0260, note:'Washington, DC. The 2-mile park from Capitol to Lincoln Memorial.' },
-  { id:211, name: 'General Grant National Memorial (Grant\'s Tomb)', type:'memorial', state:'NY', lat:40.8090, lng:-73.9630, note:'Manhattan, NYC. Largest mausoleum in North America.' },
-  { id:212, name: 'USS Arizona Memorial',                        type:'memorial', state:'HI', lat:21.3647, lng:-157.9500, note:'Pearl Harbor, Oahu, HI. Marks sunken USS Arizona battleship.' },
-  { id:213, name: 'Mount Rushmore National Memorial',            type:'memorial', state:'SD', lat:43.8791, lng:-103.4591, note:'Keystone, SD. Carved 1927–1941. Washington, Jefferson, T. Roosevelt, Lincoln.' },
-  { id:214, name: 'Statue of Liberty National Monument',         type:'monument', state:'NY', lat:40.6892, lng:-74.0445, note:'Liberty Island, NY. Gift from France, dedicated 1886.' },
-  { id:215, name: 'Bunker Hill Monument',                        type:'memorial', state:'MA', lat:42.3762, lng:-71.0607, note:'Charlestown, Boston. Commemorates 1775 Battle of Bunker Hill.' },
-  { id:216, name: 'Perry\'s Victory and International Peace Memorial', type:'memorial', state:'OH', lat:41.6590, lng:-82.8217, note:'Put-in-Bay, South Bass Island, OH. War of 1812.' },
-  { id:217, name: 'Chamizal National Memorial',                  type:'memorial', state:'TX', lat:31.7609, lng:-106.4631, note:'El Paso, TX. US-Mexico border peace memorial.' },
-  { id:218, name: 'De Soto National Memorial',                   type:'memorial', state:'FL', lat:27.5280, lng:-82.6279, note:'Bradenton, FL. Commemorates Hernando de Soto\'s 1539 landing.' },
-  { id:219, name: 'Fort McHenry National Monument & Historic Shrine', type:'monument', state:'MD', lat:39.2634, lng:-76.5798, note:'Baltimore, MD. Where "The Star-Spangled Banner" was written, 1814.' },
-  { id:220, name: 'Crazy Horse Memorial',                        type:'memorial', state:'SD', lat:43.8830, lng:-103.5442, note:'Privately owned. Ongoing carving since 1948. Near Mount Rushmore.' },
-  { id:221, name: 'National World War I Memorial',               type:'memorial', state:'DC', lat:38.8952, lng:-77.0297, note:'Washington, DC. Pershing Park. Unveiled 2021.' },
-
+  { id:201, name: 'Lincoln Memorial',                                   type:'memorial', state:'DC', lat:38.8893, lng:-77.0502, note:'Washington, DC. Dedicated 1922. Daniel Chester French sculpture.' },
+  { id:202, name: 'Washington Monument',                                type:'memorial', state:'DC', lat:38.8895, lng:-77.0353, note:'Washington, DC. Tallest obelisk in the world at completion (555 ft).' },
+  { id:203, name: 'Jefferson Memorial',                                 type:'memorial', state:'DC', lat:38.8814, lng:-77.0365, note:'Washington, DC. Tidal Basin. Dedicated 1943.' },
+  { id:204, name: 'Vietnam Veterans Memorial',                          type:'memorial', state:'DC', lat:38.8913, lng:-77.0476, note:'Washington, DC. Maya Lin design, 1982. 58,000+ names.' },
+  { id:205, name: 'Korean War Veterans Memorial',                       type:'memorial', state:'DC', lat:38.8873, lng:-77.0474, note:'Washington, DC. 19 stainless steel statues. Dedicated 1995.' },
+  { id:206, name: 'World War II Memorial',                              type:'memorial', state:'DC', lat:38.8893, lng:-77.0403, note:'Washington, DC. National Mall. Dedicated 2004.' },
+  { id:207, name: 'Martin Luther King Jr. Memorial',                    type:'memorial', state:'DC', lat:38.8864, lng:-77.0442, note:'Washington, DC. "Stone of Hope." Dedicated 2011.' },
+  { id:208, name: 'Franklin Delano Roosevelt Memorial',                 type:'memorial', state:'DC', lat:38.8832, lng:-77.0443, note:'Washington, DC. 4 outdoor rooms representing his terms.' },
+  { id:209, name: 'Theodore Roosevelt Island',                          type:'memorial', state:'DC', lat:38.8963, lng:-77.0650, note:'Washington, DC. Island memorial in Potomac River.' },
+  { id:210, name: 'National Mall',                                      type:'memorial', state:'DC', lat:38.8900, lng:-77.0260, note:'Washington, DC. The 2-mile park from Capitol to Lincoln Memorial.' },
+  { id:211, name: 'General Grant National Memorial (Grant\'s Tomb)',    type:'memorial', state:'NY', lat:40.8090, lng:-73.9630, note:'Manhattan, NYC. Largest mausoleum in North America. Grant\'s grave is within.' },
+  { id:212, name: 'USS Arizona Memorial',                               type:'memorial', state:'HI', lat:21.3647, lng:-157.9500, note:'Pearl Harbor, Oahu, HI. Marks sunken USS Arizona battleship.' },
+  { id:213, name: 'Mount Rushmore National Memorial',                   type:'memorial', state:'SD', lat:43.8791, lng:-103.4591, note:'Keystone, SD. Carved 1927–1941. Washington, Jefferson, T. Roosevelt, Lincoln.' },
+  { id:214, name: 'Statue of Liberty National Monument',                type:'monument', state:'NY', lat:40.6892, lng:-74.0445, note:'Liberty Island, NY. Gift from France, dedicated 1886.' },
+  { id:215, name: 'Bunker Hill Monument',                               type:'memorial', state:'MA', lat:42.3762, lng:-71.0607, note:'Charlestown, Boston. Commemorates 1775 Battle of Bunker Hill.' },
+  { id:216, name: 'Perry\'s Victory and International Peace Memorial',  type:'memorial', state:'OH', lat:41.6590, lng:-82.8217, note:'Put-in-Bay, South Bass Island, OH. War of 1812.' },
+  { id:217, name: 'Chamizal National Memorial',                         type:'memorial', state:'TX', lat:31.7609, lng:-106.4631, note:'El Paso, TX. US-Mexico border peace memorial.' },
+  { id:218, name: 'De Soto National Memorial',                          type:'memorial', state:'FL', lat:27.5280, lng:-82.6279, note:'Bradenton, FL. Commemorates Hernando de Soto\'s 1539 landing.' },
+  { id:219, name: 'Fort McHenry National Monument & Historic Shrine',   type:'monument', state:'MD', lat:39.2634, lng:-76.5798, note:'Baltimore, MD. Where "The Star-Spangled Banner" was written, 1814.' },
+  { id:220, name: 'Crazy Horse Memorial',                               type:'memorial', state:'SD', lat:43.8830, lng:-103.5442, note:'Privately owned. Ongoing carving since 1948. Near Mount Rushmore.' },
+  { id:221, name: 'National World War I Memorial',                      type:'memorial', state:'DC', lat:38.8952, lng:-77.0297, note:'Washington, DC. Pershing Park. Unveiled 2021.' },
   // ── NATIONAL PARKS (SELECT) ───────────────────────────────────────────────
   { id:301, name: 'Yellowstone National Park',              type:'park', state:'WY', lat:44.4280, lng:-110.5885, note:'WY/MT/ID. World\'s first national park (1872). Geysers, wildlife.' },
   { id:302, name: 'Grand Canyon National Park',             type:'park', state:'AZ', lat:36.1069, lng:-112.1129, note:'Arizona. One of the Seven Natural Wonders. 1919.' },
@@ -280,7 +297,6 @@ const SITES = [
   { id:348, name: 'Minute Man National Historical Park',    type:'park', state:'MA', lat:42.4471, lng:-71.2891, note:'Massachusetts. Lexington & Concord. "The shot heard round the world."' },
   { id:349, name: 'Manassas National Battlefield Park',     type:'park', state:'VA', lat:38.8156, lng:-77.5259, note:'Virginia. Two Civil War battles (Bull Run). 1861, 1862.' },
   { id:350, name: 'Chickamauga & Chattanooga National Military Park', type:'park', state:'GA', lat:34.9354, lng:-85.2565, note:'GA/TN. First national military park established (1890).' },
-
   // ── NATIONAL MONUMENTS ────────────────────────────────────────────────────
   { id:401, name: 'Devils Tower National Monument',          type:'monument', state:'WY', lat:44.5905, lng:-104.7153, note:'Wyoming. First U.S. National Monument (1906). Sacred Lakota site.' },
   { id:402, name: 'Muir Woods National Monument',            type:'monument', state:'CA', lat:37.8970, lng:-122.5811, note:'Marin County, CA. Old-growth coast redwoods.' },
@@ -294,12 +310,27 @@ const SITES = [
   { id:410, name: 'Bandelier National Monument',             type:'monument', state:'NM', lat:35.7794, lng:-106.2714, note:'New Mexico. Ancestral Puebloan cliff dwellings in Frijoles Canyon.' },
 ];
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let map, markers = {}, activeFilters = new Set(Object.keys(TYPES));
-let origin = null; // {lat, lng, label}
+// ─── PRE-PROCESS: co-location groups ─────────────────────────────────────────
+// Key = rounded lat/lng (3 decimals ≈ 100m). Sites that share a key are at the same location.
+const locGroups = {}; // key -> [site, ...]
+SITES.forEach(s => {
+  const k = `${s.lat.toFixed(3)},${s.lng.toFixed(3)}`;
+  s._locKey = k;
+  if (!locGroups[k]) locGroups[k] = [];
+  locGroups[k].push(s);
+});
+// Annotate each site with its co-located siblings (different id, same spot)
+SITES.forEach(s => {
+  s._colocated = locGroups[s._locKey].filter(o => o.id !== s.id);
+});
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let map, clusterLayer = null, locMarkers = {}; // locKey -> L.Marker
+let activeFilters = new Set(Object.keys(TYPES));
+let origin = null;
 let activeItemId = null;
 
-// ─── MAP INIT ────────────────────────────────────────────────────────────────
+// ─── MAP INIT ─────────────────────────────────────────────────────────────────
 function initMap() {
   map = L.map('map', { center: [39.5, -98.35], zoom: 4 });
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -308,43 +339,90 @@ function initMap() {
   }).addTo(map);
 }
 
-function makeIcon(type) {
-  const c = TYPES[type].color;
+// ─── ICONS ────────────────────────────────────────────────────────────────────
+function makeGroupIcon(visibleSites) {
+  const types = [...new Set(visibleSites.map(s => s.type))];
+  const colors = types.map(t => TYPES[t].color);
+  const multi = colors.length > 1;
+  const size = multi ? 16 : 12;
+
+  let bg;
+  if (!multi) {
+    bg = colors[0];
+  } else {
+    const pct = 100 / colors.length;
+    const stops = colors.map((c, i) => `${c} ${(i * pct).toFixed(1)}% ${((i + 1) * pct).toFixed(1)}%`).join(', ');
+    bg = `conic-gradient(${stops})`;
+  }
+
+  const ring = multi ? 'border:2px solid #fff;' : 'border:2px solid rgba(255,255,255,0.7);';
+  const shadow = multi ? 'box-shadow:0 1px 8px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,0.2);' : 'box-shadow:0 1px 4px rgba(0,0,0,.5);';
+  const html = `<div style="width:${size}px;height:${size}px;background:${bg};${ring}border-radius:50%;${shadow}"></div>`;
   return L.divIcon({
     className: '',
-    html: `<div style="width:12px;height:12px;background:${c};border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div>`,
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-    popupAnchor: [0, -8],
+    html,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2 + 4)],
   });
 }
 
-function buildPopup(site) {
-  const t = TYPES[site.type];
-  const linkHtml = site.url ? `<a class="popup-link" href="${site.url}" target="_blank">More info ↗</a>` : '';
-  return `<div class="popup-title">${site.name}</div>
-<span class="popup-type" style="background:${t.color}22;color:${t.color}">${t.label}</span>
-<div class="popup-info">${site.state} &nbsp;·&nbsp; ${site.note}</div>
-${linkHtml}`;
+// ─── POPUP ────────────────────────────────────────────────────────────────────
+function buildGroupPopup(sites) {
+  const state = sites[0].state;
+  const parts = sites.map(s => {
+    const t = TYPES[s.type];
+    const link = s.url ? `<a class="popup-link" href="${s.url}" target="_blank">More info ↗</a>` : '';
+    return `<div class="popup-site">
+      <div class="popup-title">${s.name}</div>
+      <span class="popup-type" style="background:${t.color}22;color:${t.color}">${t.label}</span>
+      <div class="popup-info">${s.note}</div>
+      ${link}
+    </div>`;
+  }).join('');
+  return `<div class="popup-state">${state}</div>${parts}`;
 }
 
+// ─── MARKERS ──────────────────────────────────────────────────────────────────
 function renderMarkers() {
-  // clear
-  Object.values(markers).forEach(m => map.removeLayer(m));
-  markers = {};
-  SITES.forEach(site => {
-    if (!activeFilters.has(site.type)) return;
-    const m = L.marker([site.lat, site.lng], { icon: makeIcon(site.type) })
-      .addTo(map)
-      .bindPopup(buildPopup(site), { maxWidth: 280 });
-    m.on('click', () => {
-      activateItem(site.id, false);
-    });
-    markers[site.id] = m;
+  if (clusterLayer) map.removeLayer(clusterLayer);
+
+  clusterLayer = L.markerClusterGroup({
+    maxClusterRadius: 40,
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    iconCreateFunction(cluster) {
+      return L.divIcon({
+        className: 'custom-cluster',
+        html: `<div class="cluster-inner">${cluster.getChildCount()}</div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+      });
+    },
   });
+
+  locMarkers = {};
+
+  // Build visible groups: for each locKey, collect only the active-filtered sites
+  const visibleGroups = {};
+  SITES.forEach(s => {
+    if (!activeFilters.has(s.type)) return;
+    if (!visibleGroups[s._locKey]) visibleGroups[s._locKey] = [];
+    visibleGroups[s._locKey].push(s);
+  });
+
+  Object.entries(visibleGroups).forEach(([key, sites]) => {
+    const m = L.marker([sites[0].lat, sites[0].lng], { icon: makeGroupIcon(sites) });
+    m.bindPopup(buildGroupPopup(sites), { maxWidth: 300 });
+    m.on('click', () => activateItem(sites[0].id, false));
+    clusterLayer.addLayer(m);
+    locMarkers[key] = m;
+  });
+
+  map.addLayer(clusterLayer);
 }
 
-// ─── FILTERS ─────────────────────────────────────────────────────────────────
+// ─── FILTERS ──────────────────────────────────────────────────────────────────
 function initFilters() {
   const el = document.getElementById('filters');
   Object.entries(TYPES).forEach(([key, t]) => {
@@ -362,11 +440,11 @@ function initFilters() {
   });
 }
 
-// ─── DISTANCE ────────────────────────────────────────────────────────────────
+// ─── DISTANCE ─────────────────────────────────────────────────────────────────
 function haversine(lat1, lng1, lat2, lng2) {
-  const R = 3958.8, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const R = 3958.8, dLat = (lat2 - lat1) * Math.PI / 180, dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 async function geocodeOrigin() {
@@ -376,15 +454,15 @@ async function geocodeOrigin() {
     const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=us&format=json&limit=1`);
     const d = await r.json();
     if (!d.length) { alert('Location not found.'); return; }
-    origin = { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon), label: d[0].display_name };
+    origin = { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
     document.getElementById('sortSelect').value = 'dist';
     renderList();
-  } catch(e) { alert('Geocoding error.'); }
+  } catch { alert('Geocoding error.'); }
 }
 
 function useMyLocation() {
   navigator.geolocation.getCurrentPosition(pos => {
-    origin = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'Your location' };
+    origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     document.getElementById('originInput').value = 'Your location';
     document.getElementById('sortSelect').value = 'dist';
     renderList();
@@ -396,7 +474,7 @@ function filteredSites() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   return SITES.filter(s => {
     if (!activeFilters.has(s.type)) return false;
-    if (q && !s.name.toLowerCase().includes(q) && !s.state.toLowerCase().includes(q)) return false;
+    if (q && !s.name.toLowerCase().includes(q) && !s.state.toLowerCase().includes(q) && !TYPES[s.type].label.toLowerCase().includes(q)) return false;
     return true;
   });
 }
@@ -405,29 +483,46 @@ function renderList() {
   const sort = document.getElementById('sortSelect').value;
   let sites = filteredSites();
 
-  if (sort === 'name') sites.sort((a,b) => a.name.localeCompare(b.name));
-  else if (sort === 'state') sites.sort((a,b) => a.state.localeCompare(b.state) || a.name.localeCompare(b.name));
-  else if (sort === 'type') sites.sort((a,b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
+  if (sort === 'name')  sites.sort((a, b) => a.name.localeCompare(b.name));
+  else if (sort === 'state') sites.sort((a, b) => a.state.localeCompare(b.state) || a.name.localeCompare(b.name));
+  else if (sort === 'type')  sites.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
   else if (sort === 'dist' && origin) {
-    sites.sort((a,b) => haversine(origin.lat, origin.lng, a.lat, a.lng) - haversine(origin.lat, origin.lng, b.lat, b.lng));
+    sites.sort((a, b) => haversine(origin.lat, origin.lng, a.lat, a.lng) - haversine(origin.lat, origin.lng, b.lat, b.lng));
   }
 
   document.getElementById('countLabel').textContent = `${sites.length} of ${SITES.length} sites`;
   const wrap = document.getElementById('listWrap');
   wrap.innerHTML = '';
 
+  // Visible ids set (for co-location badge filtering)
+  const visibleIds = new Set(sites.map(s => s.id));
+
   sites.forEach(site => {
     const t = TYPES[site.type];
     const dist = origin ? haversine(origin.lat, origin.lng, site.lat, site.lng) : null;
     const distHtml = dist !== null ? `<span class="site-dist">${Math.round(dist).toLocaleString()} mi</span>` : '';
+
+    // Co-located siblings that are also currently visible
+    const visibleSiblings = site._colocated.filter(o => visibleIds.has(o.id));
+    const uniqueSiblingTypes = [...new Set(visibleSiblings.map(o => o.type))];
+
+    // Icon column: this type's dot + one dot per co-located type
+    const allTypes = [site.type, ...uniqueSiblingTypes];
+    const dotsHtml = allTypes.map(tp => `<span class="item-dot" style="background:${TYPES[tp].color}"></span>`).join('');
+
+    // "also" badge text
+    const alsoHtml = uniqueSiblingTypes.length
+      ? `<span class="also-tag">+ ${uniqueSiblingTypes.map(tp => TYPES[tp].label).join(', ')}</span>`
+      : '';
+
     const div = document.createElement('div');
     div.className = 'site-item' + (site.id === activeItemId ? ' active' : '');
     div.dataset.id = site.id;
     div.innerHTML = `
-      <span class="site-dot" style="background:${t.color}"></span>
+      <div class="item-dots">${dotsHtml}</div>
       <div class="site-info">
         <div class="site-name">${site.name}</div>
-        <div class="site-meta"><span>${t.label}</span><span>${site.state}</span></div>
+        <div class="site-meta"><span>${t.label}</span><span>${site.state}</span>${alsoHtml}</div>
       </div>
       ${distHtml}`;
     div.addEventListener('click', () => activateItem(site.id, true));
@@ -435,35 +530,38 @@ function renderList() {
   });
 }
 
+// ─── ACTIVATE ─────────────────────────────────────────────────────────────────
 function activateItem(id, flyTo) {
   activeItemId = id;
-  // update list highlight
   document.querySelectorAll('.site-item').forEach(el => {
     el.classList.toggle('active', parseInt(el.dataset.id) === id);
   });
-  // scroll item into view
   const active = document.querySelector('.site-item.active');
   if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
   const site = SITES.find(s => s.id === id);
   if (!site) return;
-  if (flyTo && markers[id]) {
-    map.flyTo([site.lat, site.lng], Math.max(map.getZoom(), 10), { animate: true, duration: 0.8 });
-    setTimeout(() => markers[id].openPopup(), 900);
+  if (flyTo) {
+    const m = locMarkers[site._locKey];
+    if (m) {
+      // Unspiderfy/uncluster first, then fly
+      if (clusterLayer) clusterLayer.zoomToShowLayer(m, () => m.openPopup());
+      else {
+        map.flyTo([site.lat, site.lng], Math.max(map.getZoom(), 10), { animate: true, duration: 0.8 });
+        setTimeout(() => m.openPopup(), 900);
+      }
+    }
   }
 }
 
-// ─── SEARCH ──────────────────────────────────────────────────────────────────
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
   initFilters();
   renderMarkers();
   renderList();
-
   document.getElementById('searchInput').addEventListener('input', renderList);
-  document.getElementById('originInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') geocodeOrigin();
-  });
+  document.getElementById('originInput').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeOrigin(); });
 });
 </script>
 </body>
