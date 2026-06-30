@@ -20,13 +20,27 @@
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
   /* ── Header ── */
-  header { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; flex-shrink: 0; }
+  header { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
   header h1 { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
-  .filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .filter-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 0.78rem; user-select: none; transition: opacity 0.15s, border-color 0.15s; }
+
+  /* ── Type filter (sidebar) ── */
+  .type-filter-section { border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .type-filter-header { padding: 7px 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; font-size: 0.74rem; color: var(--text-dim); }
+  .type-filter-header:hover { background: var(--surface2); }
+  .type-filter-body { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 3px; max-height: 260px; overflow-y: auto; }
+  .type-filter-body.collapsed { display: none; }
+  .type-filter-body::-webkit-scrollbar { width: 4px; }
+  .type-filter-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .tf-all-none { display: flex; gap: 4px; margin-bottom: 2px; }
+  .tf-all-none button { font-size: 0.68rem; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); cursor: pointer; }
+  .tf-all-none button:hover { color: var(--text); border-color: var(--accent); }
+  .type-group { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; }
+  .type-group-label { font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+  .type-chips { display: flex; flex-wrap: wrap; gap: 3px; }
+  .filter-chip { display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 0.7rem; user-select: none; transition: opacity 0.15s, border-color 0.15s; white-space: nowrap; }
   .filter-chip input { display: none; }
-  .filter-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .filter-chip.off { opacity: 0.35; }
+  .filter-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .filter-chip.off { opacity: 0.28; }
   .filter-chip:hover { border-color: var(--accent); }
 
   /* ── Layout ── */
@@ -150,7 +164,6 @@
 
 <header>
   <h1>🗺️ Historic America</h1>
-  <div class="filters" id="filters"></div>
   <button class="view-toggle" id="viewToggleBtn" onclick="toggleListOnly()">☰ List View</button>
 </header>
 
@@ -192,6 +205,12 @@
       </div>
       <div class="count-label" id="countLabel"></div>
     </div>
+    <div class="type-filter-section">
+      <div class="type-filter-header" onclick="toggleTypeFilters()">
+        <span>Type filter</span><span id="tf-toggle">▾</span>
+      </div>
+      <div class="type-filter-body" id="type-filters"></div>
+    </div>
     <div class="list-wrap" id="listWrap"></div>
   </div>
 </div>
@@ -199,12 +218,32 @@
 <script>
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 const TYPES = {
-  library:  { label: 'Presidential Library', color: '#f59e0b' },
-  grave:    { label: 'Presidential Grave',   color: '#a78bfa' },
-  memorial: { label: 'National Memorial',    color: '#34d399' },
-  park:     { label: 'National Park',        color: '#60a5fa' },
-  monument: { label: 'National Monument',    color: '#f87171' },
+  library:           { label: 'Presidential Library',         color: '#f59e0b' },
+  grave:             { label: 'Presidential Grave',           color: '#a78bfa' },
+  birthplace:        { label: 'Presidential Birthplace',      color: '#fb923c' },
+  founder_home:      { label: "Founding Father's Home",       color: '#e879f9' },
+  memorial:          { label: 'National Memorial',            color: '#34d399' },
+  park:              { label: 'National Park',                color: '#60a5fa' },
+  monument:          { label: 'National Monument',            color: '#f87171' },
+  native_site:       { label: 'Ancient/Native American Site', color: '#4ade80' },
+  space:             { label: 'Space History',                color: '#22d3ee' },
+  battlefield_rev:   { label: 'Revolutionary War Battlefield',color: '#f97316' },
+  battlefield_1812:  { label: 'War of 1812 Battlefield',     color: '#fbbf24' },
+  battlefield_civil: { label: 'Civil War Battlefield',        color: '#dc2626' },
+  fort_colonial:     { label: 'Colonial-Era Fort',            color: '#a16207' },
+  fort_rev:          { label: 'Revolutionary War Fort',       color: '#16a34a' },
+  fort_civil:        { label: 'Civil War Fort',               color: '#0284c7' },
+  fort_frontier:     { label: 'Frontier Fort',                color: '#7c3aed' },
 };
+
+const TYPE_GROUPS = [
+  { label: 'Presidential',            types: ['library', 'grave', 'birthplace'] },
+  { label: 'Historic Homes',          types: ['founder_home'] },
+  { label: 'Battlefields',            types: ['battlefield_rev', 'battlefield_1812', 'battlefield_civil'] },
+  { label: 'Forts',                   types: ['fort_colonial', 'fort_rev', 'fort_civil', 'fort_frontier'] },
+  { label: 'National Parks & Sites',  types: ['park', 'monument', 'memorial'] },
+  { label: 'Cultural & Science',      types: ['native_site', 'space'] },
+];
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const SITES = [
@@ -590,20 +629,55 @@ function renderMarkers() {
 }
 
 // ─── FILTERS ──────────────────────────────────────────────────────────────────
+var typeFiltersCollapsed = false;
+
+function toggleTypeFilters() {
+  typeFiltersCollapsed = !typeFiltersCollapsed;
+  document.getElementById('type-filters').classList.toggle('collapsed', typeFiltersCollapsed);
+  document.getElementById('tf-toggle').textContent = typeFiltersCollapsed ? '▸' : '▾';
+}
+
+function setAllFilters(on) {
+  Object.keys(TYPES).forEach(function(key) {
+    if (on) activeFilters.add(key); else activeFilters.delete(key);
+  });
+  document.querySelectorAll('.filter-chip input').forEach(function(cb) {
+    cb.checked = on;
+    cb.closest('.filter-chip').classList.toggle('off', !on);
+  });
+  renderMarkers(); renderList();
+}
+
 function initFilters() {
-  var el = document.getElementById('filters');
-  Object.entries(TYPES).forEach(function(entry) {
-    var key = entry[0], t = entry[1];
-    var chip = document.createElement('label');
-    chip.className = 'filter-chip';
-    chip.innerHTML = '<input type="checkbox" checked /><span class="dot" style="background:' + t.color + '"></span>' + t.label;
-    var cb = chip.querySelector('input');
-    cb.addEventListener('change', function() {
-      if (cb.checked) { activeFilters.add(key); chip.classList.remove('off'); }
-      else { activeFilters.delete(key); chip.classList.add('off'); }
-      renderMarkers(); renderList();
+  var el = document.getElementById('type-filters');
+  var allNone = document.createElement('div');
+  allNone.className = 'tf-all-none';
+  allNone.innerHTML = '<button onclick="setAllFilters(true)">All</button><button onclick="setAllFilters(false)">None</button>';
+  el.appendChild(allNone);
+  TYPE_GROUPS.forEach(function(group) {
+    var g = document.createElement('div');
+    g.className = 'type-group';
+    var lbl = document.createElement('div');
+    lbl.className = 'type-group-label';
+    lbl.textContent = group.label;
+    g.appendChild(lbl);
+    var chips = document.createElement('div');
+    chips.className = 'type-chips';
+    group.types.forEach(function(key) {
+      var t = TYPES[key];
+      var chip = document.createElement('label');
+      chip.className = 'filter-chip';
+      chip.innerHTML = '<input type="checkbox" checked /><span class="dot" style="background:' + t.color + '"></span>' + t.label;
+      var cb = chip.querySelector('input');
+      cb.addEventListener('change', function() {
+        if (cb.checked) { activeFilters.add(key); chip.classList.remove('off'); }
+        else { activeFilters.delete(key); chip.classList.add('off'); }
+        renderMarkers(); renderList();
+      });
+      chips.appendChild(chip);
     });
-    el.appendChild(chip);
+    g.appendChild(chips);
+    el.appendChild(g);
   });
 }
 
