@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Historic America Map</title>
+<title>Jarvis Explorer</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -211,7 +211,7 @@
 <!-- Login overlay -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
-    <h2>🗺️ Historic America</h2>
+    <h2>🌍 Jarvis Explorer</h2>
     <p>Who's exploring today?</p>
     <div class="login-users">
       <button class="login-user-btn" onclick="loginAs('dan')">
@@ -225,7 +225,7 @@
 </div>
 
 <header>
-  <h1>🗺️ Historic America</h1>
+  <h1>🌍 Jarvis Explorer</h1>
   <button class="view-toggle" id="viewToggleBtn" onclick="toggleListOnly()">☰ List View</button>
   <div class="user-badge">
     <span class="user-badge-name" id="userBadge"></span>
@@ -311,6 +311,16 @@ const TYPES = {
   fort_rev:          { label: 'Revolutionary War Fort',       color: '#16a34a' },
   fort_civil:        { label: 'Civil War Fort',               color: '#0284c7' },
   fort_frontier:     { label: 'Frontier Fort',                color: '#7c3aed' },
+  // ── Global categories ──
+  ancient_ruins:     { label: 'Ancient Ruins & Wonders',      color: '#d97706' },
+  natural_wonder:    { label: 'Natural Wonder',                color: '#15803d' },
+  cathedral:         { label: 'Cathedral & Sacred Site',       color: '#8b5cf6' },
+  castle:            { label: 'Castle & Palace',               color: '#92400e' },
+  art_museum:        { label: 'Art & History Museum',          color: '#ea580c' },
+  engineering:       { label: 'Engineering Marvel',            color: '#0369a1' },
+  volcano:           { label: 'Volcano',                       color: '#b91c1c' },
+  safari:            { label: 'Safari & Wildlife',             color: '#ca8a04' },
+  unesco:            { label: 'UNESCO World Heritage',         color: '#0891b2' },
 };
 
 const TYPE_GROUPS = [
@@ -321,6 +331,14 @@ const TYPE_GROUPS = [
   { label: 'National Parks & Sites',  types: ['park', 'monument', 'memorial'] },
   { label: 'Cultural & Science',      types: ['native_site', 'space'] },
   { label: 'Social History',          types: ['civil_rights', 'womens_history', 'immigration'] },
+  // ── Global ──
+  { label: 'World: Ancient & Ruins',  types: ['ancient_ruins'] },
+  { label: 'World: Natural Wonders',  types: ['natural_wonder', 'volcano'] },
+  { label: 'World: Sacred & Castles', types: ['cathedral', 'castle'] },
+  { label: 'World: Museums',          types: ['art_museum'] },
+  { label: 'World: Engineering',      types: ['engineering'] },
+  { label: 'World: Wildlife',         types: ['safari'] },
+  { label: 'UNESCO World Heritage',   types: ['unesco'] },
 ];
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
@@ -662,7 +680,167 @@ const SITES = [
   { id:1903, name:'Lower East Side Tenement Museum',       type:'immigration', state:'NY', lat:40.7188, lng:-73.9900, note:'Manhattan, NYC. 97 Orchard St. Preserved 1863 tenement; immigrant family stories.', url:'https://www.tenement.org/' },
   { id:1904, name:'Manzanar National Historic Site',       type:'immigration', state:'CA', lat:36.7278, lng:-118.1553, note:'Owens Valley, CA. WWII Japanese American incarceration camp. 10,000 detained.', url:'https://www.nps.gov/manz/' },
   { id:1905, name:'Heart Mountain Relocation Center',      type:'immigration', state:'WY', lat:44.6752, lng:-108.9517, note:'Park County, WY. WWII incarceration of ~14,000 Japanese Americans.', url:'https://heartmountain.org/' },
+
+  // ── ANCIENT RUINS & WONDERS ─────────────────────────────────────────────────
+  { id:2001, name:'Great Pyramid of Giza',               type:'ancient_ruins', state:'Egypt',       lat:29.9792,  lng:31.1342,   note:'Last surviving Wonder of the Ancient World. Built ~2560 BCE for Pharaoh Khufu.', url:'https://www.egypt.travel/' },
+  { id:2002, name:'Great Sphinx of Giza',                type:'ancient_ruins', state:'Egypt',       lat:29.9753,  lng:31.1376,   note:'74 m limestone monument carved ~2500 BCE. Adjacent to the Giza pyramids.', url:'https://www.egypt.travel/' },
+  { id:2003, name:'Machu Picchu',                        type:'ancient_ruins', state:'Peru',        lat:-13.1631, lng:-72.5450,  note:'15th-century Inca citadel high in the Andes. UNESCO WH since 1983.', url:'https://www.machupicchu.gob.pe/' },
+  { id:2004, name:'Petra',                               type:'ancient_ruins', state:'Jordan',      lat:30.3285,  lng:35.4444,   note:'Nabataean rose-red rock-carved city, 4th c BCE. New Seven Wonder. UNESCO WH.', url:'https://www.visitpetra.jo/' },
+  { id:2005, name:'Stonehenge',                          type:'ancient_ruins', state:'England',     lat:51.1789,  lng:-1.8262,   note:'Neolithic megalithic monument ~3000–1500 BCE. UNESCO WH.', url:'https://www.english-heritage.org.uk/stonehenge' },
+  { id:2006, name:'Angkor Wat',                          type:'ancient_ruins', state:'Cambodia',    lat:13.4125,  lng:103.8670,  note:"World's largest religious monument. 12th-c Khmer temple. UNESCO WH.", url:'https://www.tourismcambodia.org/' },
+  { id:2007, name:'Chichen Itza',                        type:'ancient_ruins', state:'Mexico',      lat:20.6829,  lng:-88.5686,  note:'Maya city; El Castillo pyramid. New Seven Wonder. UNESCO WH.', url:'https://www.inah.gob.mx/' },
+  { id:2008, name:'Pompeii',                             type:'ancient_ruins', state:'Italy',       lat:40.7490,  lng:14.4862,   note:'Roman city preserved by Vesuvius eruption, 79 CE. UNESCO WH.', url:'https://pompeiiconservation.org/' },
+  { id:2009, name:'Borobudur',                           type:'ancient_ruins', state:'Indonesia',   lat:-7.6079,  lng:110.2038,  note:'9th-century Mahayana Buddhist temple. Largest Buddhist monument in world. UNESCO WH.', url:'https://borobudurpark.com/' },
+  { id:2010, name:'Abu Simbel',                          type:'ancient_ruins', state:'Egypt',       lat:22.3385,  lng:31.6244,   note:'Ramesses II twin temples carved from cliff, 1264 BCE. Relocated for Aswan Dam.', url:'https://www.egypt.travel/' },
+  { id:2011, name:'Teotihuacan',                         type:'ancient_ruins', state:'Mexico',      lat:19.6925,  lng:-98.8438,  note:'Pre-Aztec metropolis; Pyramid of the Sun & Moon. UNESCO WH.', url:'https://www.inah.gob.mx/' },
+  { id:2012, name:'Easter Island (Rapa Nui)',            type:'ancient_ruins', state:'Chile',       lat:-27.1127, lng:-109.3497, note:'900+ moai statues carved by Rapa Nui people. UNESCO WH.', url:'https://www.rapanui.travel/' },
+  { id:2013, name:'Valley of the Kings',                 type:'ancient_ruins', state:'Egypt',       lat:25.7402,  lng:32.6017,   note:"New Kingdom pharaohs' tombs including Tutankhamun. Luxor. UNESCO WH.", url:'https://www.egypt.travel/' },
+  { id:2014, name:'Tikal',                               type:'ancient_ruins', state:'Guatemala',   lat:17.2220,  lng:-89.6237,  note:'Classic Maya ceremonial center; Temple IV rises 70 m. UNESCO WH.', url:'https://www.visitguatemala.com/' },
+  { id:2015, name:'Great Wall of China (Badaling)',      type:'ancient_ruins', state:'China',       lat:40.3588,  lng:116.0152,  note:'Most visited section. Wall spans ~21,000 km total. UNESCO WH.', url:'https://www.travelchinaguide.com/' },
+  { id:2016, name:'Acropolis of Athens',                 type:'ancient_ruins', state:'Greece',      lat:37.9715,  lng:23.7267,   note:'Parthenon, Erechtheion & Propylaea. 5th c BCE. UNESCO WH.', url:'https://www.acropolis.gr/' },
+  { id:2017, name:'Colosseum',                           type:'ancient_ruins', state:'Italy',       lat:41.8902,  lng:12.4922,   note:'Roman amphitheater, 70–80 CE. Held 50,000–80,000 spectators.', url:'https://www.colosseo.it/' },
+  { id:2018, name:'Alhambra',                            type:'ancient_ruins', state:'Spain',       lat:37.1768,  lng:-3.5960,   note:'Moorish palace complex with intricate Islamic geometry. 13th–14th c. UNESCO WH.', url:'https://www.alhambra-patronato.es/' },
+  { id:2019, name:'Persepolis',                          type:'ancient_ruins', state:'Iran',        lat:29.9348,  lng:52.8907,   note:'Ceremonial capital of Achaemenid Persian Empire, ~515 BCE. UNESCO WH.', url:'https://whc.unesco.org/en/list/114' },
+  { id:2020, name:'Carnac Megaliths',                    type:'ancient_ruins', state:'France',      lat:47.5894,  lng:-3.0750,   note:'3,000+ Neolithic standing stones arranged in rows, ~4500 BCE. Brittany.', url:'https://www.carnac.fr/' },
+  { id:2021, name:'Roman Forum',                         type:'ancient_ruins', state:'Italy',       lat:41.8925,  lng:12.4853,   note:'Center of ancient Roman public life. Temples, Senate, triumphal arches.', url:'https://www.colosseo.it/' },
+  { id:2022, name:'Parthenon / Acropolis Museum',        type:'ancient_ruins', state:'Greece',      lat:37.9695,  lng:23.7294,   note:'New museum for Parthenon sculptures. Athens. Opened 2009.', url:'https://www.theacropolismuseum.gr/' },
+  { id:2023, name:'Ephesus',                             type:'ancient_ruins', state:'Turkey',      lat:37.9397,  lng:27.3416,   note:'Ancient Greek city; Library of Celsus, Temple of Artemis site. UNESCO WH.', url:'https://www.ephesus.us/' },
+  { id:2024, name:'Lascaux Cave Paintings (replica)',    type:'ancient_ruins', state:'France',      lat:45.0546,  lng:1.0666,    note:'~17,000-year-old Paleolithic cave art. Original closed 1963; Lascaux IV replica open.', url:'https://www.lascaux.fr/' },
+  { id:2025, name:'Philae Temple (Isis)',                type:'ancient_ruins', state:'Egypt',       lat:24.0238,  lng:32.8858,   note:'Temple of Isis on Nile island. Relocated to Agilkia Island to save from Aswan Dam. UNESCO WH.', url:'https://www.egypt.travel/' },
+
+  // ── NATURAL WONDERS ──────────────────────────────────────────────────────────
+  { id:2101, name:'Victoria Falls',                      type:'natural_wonder', state:'Zimbabwe/Zambia', lat:-17.9242, lng:25.8527, note:"World's largest waterfall by width×height. 1,708 m wide. UNESCO WH.", url:'https://www.victoriafallsguide.net/' },
+  { id:2102, name:'Iguazu Falls',                        type:'natural_wonder', state:'Argentina/Brazil', lat:-25.6953, lng:-54.4367, note:'275 individual cascades; wider than Niagara. UNESCO WH.', url:'https://www.iguazufalls.com/' },
+  { id:2103, name:'Great Barrier Reef',                  type:'natural_wonder', state:'Australia',  lat:-18.2871, lng:147.6992,  note:"World's largest coral reef system — 2,300 km. UNESCO WH.", url:'https://www.gbrmpa.gov.au/' },
+  { id:2104, name:'Amazon Rainforest',                   type:'natural_wonder', state:'Brazil',     lat:-3.4653,  lng:-62.2159,  note:"World's largest rainforest. ~10% of all species on Earth.", url:'https://www.amazonas.am.gov.br/' },
+  { id:2105, name:'Zhangjiajie National Forest Park',    type:'natural_wonder', state:'China',      lat:29.3242,  lng:110.4345,  note:"Towering sandstone pillars inspired Avatar's Hallelujah Mountains.", url:'https://www.zhangjiajie.gov.cn/' },
+  { id:2106, name:'Plitvice Lakes National Park',        type:'natural_wonder', state:'Croatia',    lat:44.8654,  lng:15.5820,   note:'16 terraced turquoise lakes with travertine waterfalls. UNESCO WH.', url:'https://np-plitvicka-jezera.hr/' },
+  { id:2107, name:'Mount Everest Base Camp (South)',     type:'natural_wonder', state:'Nepal',      lat:28.0026,  lng:86.8528,   note:'South Base Camp at 5,364 m. Gateway to world\'s highest peak (8,849 m).', url:'https://www.tourismdepartment.gov.np/' },
+  { id:2108, name:'Galápagos Islands',                   type:'natural_wonder', state:'Ecuador',    lat:-0.7667,  lng:-90.5500,  note:"Living laboratory of evolution. Marine iguanas, giant tortoises. UNESCO WH.", url:'https://www.galapagos.org/' },
+  { id:2109, name:'Perito Moreno Glacier',               type:'natural_wonder', state:'Argentina',  lat:-50.4959, lng:-73.1447,  note:'Advancing Patagonian glacier. One of very few in the world that is growing.', url:'https://www.argentina.travel/' },
+  { id:2110, name:'Milford Sound',                       type:'natural_wonder', state:'New Zealand',lat:-44.6714, lng:167.9258,  note:"Dramatic fiord with 1,200 m sheer cliffs and cascading waterfalls. Fiordland NP.", url:'https://www.newzealand.com/' },
+  { id:2111, name:'Ha Long Bay',                         type:'natural_wonder', state:'Vietnam',    lat:20.9101,  lng:107.1839,  note:'1,600+ limestone islands rising from emerald water. UNESCO WH.', url:'https://www.halong.org.vn/' },
+  { id:2112, name:'Salar de Uyuni',                      type:'natural_wonder', state:'Bolivia',    lat:-20.1338, lng:-67.4891,  note:"World's largest salt flat (10,582 sq km). Mirror effect after rainfall.", url:'https://www.boliviaconect.com/' },
+  { id:2113, name:'Angel Falls',                         type:'natural_wonder', state:'Venezuela',  lat:5.9698,   lng:-62.5355,  note:"World's highest uninterrupted waterfall at 979 m. Canaima NP.", url:'https://www.canaima.net/' },
+  { id:2114, name:'Niagara Falls',                       type:'natural_wonder', state:'NY/Ontario', lat:43.0896,  lng:-79.0849,  note:'Three waterfalls: Horseshoe, American & Bridal Veil. 3,160 tons/sec flow rate.', url:'https://www.niagarafallsstatepark.com/' },
+  { id:2115, name:'Table Mountain',                      type:'natural_wonder', state:'South Africa',lat:-33.9628, lng:18.4098,  note:'3,000+ endemic plant species; New Seven Wonders of Nature. Overlooks Cape Town.', url:'https://www.tablemountain.net/' },
+  { id:2116, name:'Aurora Borealis (Tromsø)',            type:'natural_wonder', state:'Norway',     lat:69.6496,  lng:18.9560,   note:'Prime Northern Lights viewing Sep–Mar. Above the Arctic Circle.', url:'https://www.visittromso.no/' },
+  { id:2117, name:'Antelope Canyon',                     type:'natural_wonder', state:'AZ',         lat:36.8619,  lng:-111.3743, note:'Navajo Nation slot canyon famous for light beams. Upper & Lower sections.', url:'https://navajonationparks.org/' },
+  { id:2118, name:'Aurora Borealis (Iceland)',           type:'natural_wonder', state:'Iceland',    lat:64.9631,  lng:-19.0208,  note:'Prime viewing Sep–Apr. Also geysers, glaciers & midnight sun.', url:'https://www.visiticeland.com/' },
+
+  // ── CATHEDRALS & SACRED SITES ────────────────────────────────────────────────
+  { id:2201, name:"St. Peter's Basilica",                type:'cathedral', state:'Vatican',     lat:41.9022,  lng:12.4533,   note:"World's largest church by interior area. Michelangelo's dome. Vatican City.", url:'https://www.basilicasanpietro.va/' },
+  { id:2202, name:'Sagrada Família',                     type:'cathedral', state:'Spain',       lat:41.4036,  lng:2.1744,    note:"Gaudí's unfinished masterpiece. Under construction since 1882. UNESCO WH.", url:'https://www.sagradafamilia.org/' },
+  { id:2203, name:'Hagia Sophia',                        type:'cathedral', state:'Turkey',      lat:41.0086,  lng:28.9802,   note:'532 CE Byzantine cathedral; mosque 1453–1934 & 2020–present. UNESCO WH.', url:'https://ayasofyacamii.com/' },
+  { id:2204, name:'Notre-Dame de Paris',                 type:'cathedral', state:'France',      lat:48.8530,  lng:2.3499,    note:'Gothic icon 1163–1345. Fire 2019; restored and reopened Dec 2024.', url:'https://www.notredamedeparis.fr/' },
+  { id:2205, name:'Cologne Cathedral',                   type:'cathedral', state:'Germany',     lat:50.9413,  lng:6.9583,    note:'Tallest structure in world 1880–1884. 157 m twin spires. UNESCO WH.', url:'https://www.koelner-dom.de/' },
+  { id:2206, name:'Blue Mosque (Sultan Ahmed)',          type:'cathedral', state:'Turkey',      lat:41.0054,  lng:28.9768,   note:'1616 Ottoman mosque with 6 minarets and signature blue Iznik tiles. Istanbul.', url:'https://bluemosquetour.com/' },
+  { id:2207, name:'Chartres Cathedral',                  type:'cathedral', state:'France',      lat:48.4473,  lng:1.4890,    note:'Finest Gothic cathedral; 12th-c stained glass nearly intact. UNESCO WH.', url:'https://www.cathedrale-chartres.org/' },
+  { id:2208, name:'Taj Mahal',                           type:'cathedral', state:'India',       lat:27.1751,  lng:78.0421,   note:'Marble mausoleum built by Shah Jahan 1632–43. New Seven Wonder. UNESCO WH.', url:'https://www.tajmahal.gov.in/' },
+  { id:2209, name:'Golden Temple (Harmandir Sahib)',     type:'cathedral', state:'India',       lat:31.6200,  lng:74.8765,   note:'Holiest Sikh gurdwara. Gold-plated. Feeds ~100,000 pilgrims daily.', url:'https://www.goldentempleamritsar.org/' },
+  { id:2210, name:'Mont Saint-Michel Abbey',             type:'cathedral', state:'France',      lat:48.6361,  lng:-1.5115,   note:'Tidal island monastery; 709 CE. One of France\'s most iconic landmarks. UNESCO WH.', url:'https://www.abbaye-mont-saint-michel.fr/' },
+  { id:2211, name:'Duomo di Firenze',                    type:'cathedral', state:'Italy',       lat:43.7731,  lng:11.2560,   note:"Brunelleschi's dome (1436) was the largest in the world for centuries.", url:'https://www.museumflorence.com/' },
+  { id:2212, name:'Kinkaku-ji (Golden Pavilion)',        type:'cathedral', state:'Japan',       lat:35.0394,  lng:135.7292,  note:'Zen Buddhist temple in gold leaf. Rebuilt 1955 after arson. Kyoto. UNESCO WH.', url:'https://www.kinkakuji.or.jp/' },
+  { id:2213, name:'Temple of Heaven',                    type:'cathedral', state:'China',       lat:39.8822,  lng:116.4066,  note:'Ming dynasty altar where emperors prayed for good harvests. Beijing. UNESCO WH.', url:'https://en.ditu.qq.com/' },
+  { id:2214, name:'Mezquita of Córdoba',                 type:'cathedral', state:'Spain',       lat:37.8790,  lng:-4.7764,   note:'8th–10th c Moorish mosque; repurposed as cathedral 1236. UNESCO WH.', url:'https://www.mezquitadecordoba.org/' },
+  { id:2215, name:'Church of the Holy Sepulchre',        type:'cathedral', state:'Israel',      lat:31.7784,  lng:35.2298,   note:'Site of Crucifixion, burial & Resurrection of Jesus. Jerusalem Old City.', url:'https://www.christusrex.org/' },
+  { id:2216, name:'Shwedagon Pagoda',                    type:'cathedral', state:'Myanmar',     lat:16.7987,  lng:96.1496,   note:"Myanmar's most sacred Buddhist site. 326-ft gold-plated stupa. Yangon.", url:'https://www.myanmartourism.org/' },
+  { id:2217, name:'Potala Palace',                       type:'cathedral', state:'China/Tibet', lat:29.6577,  lng:91.1163,   note:"Winter residence of the Dalai Lamas. 13-story whitewashed fortress. UNESCO WH.", url:'https://whc.unesco.org/en/list/707' },
+
+  // ── CASTLES & PALACES ────────────────────────────────────────────────────────
+  { id:2301, name:'Neuschwanstein Castle',               type:'castle', state:'Germany',    lat:47.5576,  lng:10.7498,   note:"Ludwig II's fantasy castle 1886. Inspired Disney's Sleeping Beauty castle.", url:'https://www.neuschwanstein.de/' },
+  { id:2302, name:'Palace of Versailles',                type:'castle', state:'France',     lat:48.8048,  lng:2.1202,    note:"Sun King's palace; 700 rooms, Hall of Mirrors, 14,000-acre grounds. UNESCO WH.", url:'https://en.chateauversailles.fr/' },
+  { id:2303, name:'Edinburgh Castle',                    type:'castle', state:'Scotland',   lat:55.9486,  lng:-3.1999,   note:'Fortress on volcanic rock. Scottish Crown Jewels. 3,000+ years of habitation.', url:'https://www.edinburghcastle.scot/' },
+  { id:2304, name:'Himeji Castle',                       type:'castle', state:'Japan',      lat:34.8394,  lng:134.6939,  note:"Japan's finest surviving feudal castle, 'White Heron'. UNESCO WH.", url:'https://www.city.himeji.lg.jp/castle/' },
+  { id:2305, name:'Prague Castle',                       type:'castle', state:'Czechia',    lat:50.0919,  lng:14.4006,   note:"World's largest ancient castle complex (~70,000 m²). UNESCO WH.", url:'https://www.hrad.cz/' },
+  { id:2306, name:'Tower of London',                     type:'castle', state:'England',    lat:51.5081,  lng:-0.0760,   note:'1066 CE Norman fortress. Crown Jewels and 900-year royal history. UNESCO WH.', url:'https://www.hrp.org.uk/tower-of-london/' },
+  { id:2307, name:'Windsor Castle',                      type:'castle', state:'England',    lat:51.4839,  lng:-0.6044,   note:'Oldest occupied royal palace (940+ years). Official royal residence.', url:'https://www.rct.uk/visit/windsorcastle' },
+  { id:2308, name:'Forbidden City (Palace Museum)',      type:'castle', state:'China',      lat:39.9163,  lng:116.3972,  note:'24 emperors\' palace. 980 buildings; largest palace complex. Beijing. UNESCO WH.', url:'https://en.dpm.org.cn/' },
+  { id:2309, name:'Carcassonne',                         type:'castle', state:'France',     lat:43.2127,  lng:2.3625,    note:'Best-preserved medieval fortified city in Europe; 52 towers & 3 km of walls. UNESCO WH.', url:'https://www.carcassonne-tourisme.com/' },
+  { id:2310, name:'Schönbrunn Palace',                   type:'castle', state:'Austria',    lat:48.1845,  lng:16.3122,   note:"Habsburg imperial summer residence; 1,441 rooms. Marie Antoinette's childhood home. UNESCO WH.", url:'https://www.schoenbrunn.at/' },
+  { id:2311, name:'Bran Castle',                         type:'castle', state:'Romania',    lat:45.5153,  lng:25.3671,   note:"14th-c Transylvanian fortress marketed as Dracula's castle.", url:'https://www.bran-castle.com/' },
+  { id:2312, name:'Château de Chambord',                 type:'castle', state:'France',     lat:47.6160,  lng:1.5168,    note:'Largest Loire Valley château. Double-helix staircase attributed to da Vinci.', url:'https://www.chambord.org/' },
+  { id:2313, name:'Osaka Castle',                        type:'castle', state:'Japan',      lat:34.6873,  lng:135.5262,  note:"Symbol of Osaka. Toyotomi Hideyoshi's fortress; 5-story main tower.", url:'https://www.osakacastle.net/' },
+  { id:2314, name:'Topkapi Palace',                      type:'castle', state:'Turkey',     lat:41.0136,  lng:28.9841,   note:"Ottoman sultans' residence 1465–1856. Istanbul. Harem, treasury, holy relics. UNESCO WH.", url:'https://www.topkapisarayi.gov.tr/' },
+  { id:2315, name:'Kremlin & Red Square',                type:'castle', state:'Russia',     lat:55.7521,  lng:37.6175,   note:"Moscow's fortified historic complex; seat of Russian government. UNESCO WH.", url:'https://www.kreml.ru/' },
+
+  // ── ART & HISTORY MUSEUMS ────────────────────────────────────────────────────
+  { id:2401, name:'The Louvre',                          type:'art_museum', state:'France',   lat:48.8606,  lng:2.3376,    note:"World's most visited museum. Mona Lisa, Venus de Milo. 35,000 works on display.", url:'https://www.louvre.fr/' },
+  { id:2402, name:'Uffizi Gallery',                      type:'art_museum', state:'Italy',    lat:43.7685,  lng:11.2553,   note:"Greatest Renaissance art collection. Botticelli's Birth of Venus, da Vinci works.", url:'https://www.uffizi.it/' },
+  { id:2403, name:'Vatican Museums & Sistine Chapel',    type:'art_museum', state:'Vatican',  lat:41.9064,  lng:12.4536,   note:'1.5 km of galleries; Michelangelo\'s Sistine Chapel ceiling 1508–12.', url:'https://www.museivaticani.va/' },
+  { id:2404, name:'Hermitage Museum',                    type:'art_museum', state:'Russia',   lat:59.9398,  lng:30.3146,   note:'3M+ works spanning 3M years. Six buildings on the Neva River. St. Petersburg.', url:'https://www.hermitagemuseum.org/' },
+  { id:2405, name:'British Museum',                      type:'art_museum', state:'England',  lat:51.5194,  lng:-0.1270,   note:'8M objects. Rosetta Stone, Elgin Marbles, Egyptian mummies. Founded 1753.', url:'https://www.britishmuseum.org/' },
+  { id:2406, name:'Metropolitan Museum of Art',          type:'art_museum', state:'NY',       lat:40.7794,  lng:-73.9632,  note:'Largest art museum in the Americas. 2M+ works across 5,000 years.', url:'https://www.metmuseum.org/' },
+  { id:2407, name:'Rijksmuseum',                         type:'art_museum', state:'Netherlands',lat:52.3600, lng:4.8852,   note:"Dutch masters: Rembrandt's Night Watch, Vermeer's The Milkmaid. Amsterdam.", url:'https://www.rijksmuseum.nl/' },
+  { id:2408, name:"Musée d'Orsay",                       type:'art_museum', state:'France',   lat:48.8600,  lng:2.3266,    note:'Largest impressionist collection: Monet, Renoir, Van Gogh, Degas. Paris.', url:'https://www.musee-orsay.fr/' },
+  { id:2409, name:'Prado Museum',                        type:'art_museum', state:'Spain',    lat:40.4138,  lng:-3.6919,   note:'Top European painting collection. Goya, Velázquez, El Greco, Bosch. Madrid.', url:'https://www.museodelprado.es/' },
+  { id:2410, name:'Egyptian Museum, Cairo',              type:'art_museum', state:'Egypt',    lat:30.0478,  lng:31.2336,   note:"Tutankhamun's golden death mask & 120,000 ancient artifacts.", url:'https://www.egyptianmuseum.gov.eg/' },
+  { id:2411, name:'Van Gogh Museum',                     type:'art_museum', state:'Netherlands',lat:52.3584, lng:4.8811,   note:'Largest collection of Van Gogh works: 200 paintings, 500 drawings. Amsterdam.', url:'https://www.vangoghmuseum.nl/' },
+  { id:2412, name:'Pergamon Museum',                     type:'art_museum', state:'Germany',  lat:52.5211,  lng:13.3966,   note:'Pergamon Altar, Ishtar Gate of Babylon, Market Gate of Miletus. Berlin.', url:'https://www.smb.museum/' },
+  { id:2413, name:'National Palace Museum',              type:'art_museum', state:'Taiwan',   lat:25.1024,  lng:121.5485,  note:'Imperial Chinese art treasures evacuated from the Forbidden City in 1948.', url:'https://www.npm.gov.tw/' },
+  { id:2414, name:'Museum of Anthropology (UNAM)',       type:'art_museum', state:'Mexico',   lat:19.4260,  lng:-99.1866,  note:"Mexico City. World's finest pre-Columbian collection. Aztec Sun Stone.", url:'https://www.mna.inah.gob.mx/' },
+
+  // ── ENGINEERING MARVELS ──────────────────────────────────────────────────────
+  { id:2501, name:'Eiffel Tower',                        type:'engineering', state:'France',  lat:48.8584,  lng:2.2945,    note:'Iron lattice tower, 1889. 324 m. Tallest structure in world 1889–1930.', url:'https://www.toureiffel.paris/' },
+  { id:2502, name:'Burj Khalifa',                        type:'engineering', state:'UAE',     lat:25.1972,  lng:55.2744,   note:"World's tallest building at 828 m (2,717 ft). Dubai. Opened 2010.", url:'https://www.burjkhalifa.ae/' },
+  { id:2503, name:'Sydney Opera House',                  type:'engineering', state:'Australia',lat:-33.8568, lng:151.2153, note:'Shell-form concrete roof panels. Designed by Jørn Utzon, 1973. UNESCO WH.', url:'https://www.sydneyoperahouse.com/' },
+  { id:2504, name:'Christ the Redeemer',                 type:'engineering', state:'Brazil',  lat:-22.9519, lng:-43.2105,  note:'30-m art deco statue on 710-m Corcovado peak. New Seven Wonder. Rio.', url:'https://cristoredentor.org.br/' },
+  { id:2505, name:'Golden Gate Bridge',                  type:'engineering', state:'CA',      lat:37.8199,  lng:-122.4783, note:'1,280 m main span. International Orange. 1937. National Historic Landmark.', url:'https://www.goldengate.org/' },
+  { id:2506, name:'Petronas Twin Towers',                type:'engineering', state:'Malaysia', lat:3.1578,   lng:101.7117,  note:'452 m. World\'s tallest twin towers. Sky bridge connects floors 41–42. Kuala Lumpur.', url:'https://www.petronastwintowers.com.my/' },
+  { id:2507, name:'Panama Canal (Miraflores Locks)',     type:'engineering', state:'Panama',  lat:8.9984,   lng:-79.5872,  note:'82 km canal connecting Atlantic and Pacific. 14,000 ships/year. UNESCO WH.', url:'https://www.pancanal.com/' },
+  { id:2508, name:'Millau Viaduct',                      type:'engineering', state:'France',  lat:43.8333,  lng:3.0247,    note:"World's tallest cable-stayed bridge: 343 m mast. Spans the Tarn River gorge.", url:'https://www.leviaducdemillau.com/' },
+  { id:2509, name:'Pont du Gard',                        type:'engineering', state:'France',  lat:43.9470,  lng:4.5353,    note:'Roman aqueduct 19 BCE. 49 m tall, 275 m long. UNESCO WH.', url:'https://www.pontdugard.fr/' },
+  { id:2510, name:'Tower Bridge',                        type:'engineering', state:'England', lat:51.5055,  lng:-0.0754,   note:'Victorian bascule bridge, 1894. Opens ~1,000 times/year to allow tall ships.', url:'https://www.towerbridge.org.uk/' },
+  { id:2511, name:'Akashi Kaikyo Bridge',                type:'engineering', state:'Japan',   lat:34.6166,  lng:135.0070,  note:"World's longest main-span suspension bridge: 1,991 m. Links Kobe to Awaji Island.", url:'https://www.jb-honshi.co.jp/' },
+  { id:2512, name:'Leaning Tower of Pisa',               type:'engineering', state:'Italy',   lat:43.7230,  lng:10.3966,   note:'5.5° lean. Construction 1173–1372. Piazza dei Miracoli. UNESCO WH.', url:'https://www.towerofpisa.org/' },
+  { id:2513, name:'Hoover Dam',                          type:'engineering', state:'NV',      lat:36.0160,  lng:-114.7378, note:'726 ft arch-gravity dam. 1936. National Historic Landmark. Supplies Las Vegas.', url:'https://www.usbr.gov/lc/hooverdam/' },
+  { id:2514, name:'Channel Tunnel (Folkestone terminal)',type:'engineering', state:'England', lat:51.0989,  lng:1.1380,    note:'50 km rail tunnel beneath the English Channel. Opened 1994.', url:'https://www.eurotunnel.com/' },
+  { id:2515, name:'Suez Canal (Port Said)',               type:'engineering', state:'Egypt',   lat:31.2634,  lng:32.3019,   note:'193 km canal linking Mediterranean to Red Sea. Opened 1869. 50 ships/day.', url:'https://www.suezcanal.gov.eg/' },
+
+  // ── VOLCANOES ────────────────────────────────────────────────────────────────
+  { id:2601, name:'Mount Fuji',                          type:'volcano', state:'Japan',       lat:35.3606,  lng:138.7274,  note:"Japan's highest peak (3,776 m). Iconic dormant stratovolcano. UNESCO WH.", url:'https://www.fujisan.ne.jp/' },
+  { id:2602, name:'Mount Vesuvius',                      type:'volcano', state:'Italy',       lat:40.8212,  lng:14.4269,   note:'Destroyed Pompeii & Herculaneum, 79 CE. Only active volcano on European mainland.', url:'https://www.vesuviopark.it/' },
+  { id:2603, name:'Kīlauea',                             type:'volcano', state:'HI',          lat:19.4069,  lng:-155.2845, note:"One of world's most active volcanoes. Lava lake in Halemaʻumaʻu Crater.", url:'https://www.nps.gov/havo/' },
+  { id:2604, name:'Mount Etna',                          type:'volcano', state:'Italy',       lat:37.7510,  lng:15.0042,   note:"Europe's tallest active volcano (3,350 m). Frequent eruptions. Sicily.", url:'https://www.etnapark.it/' },
+  { id:2605, name:'Santorini Caldera',                   type:'volcano', state:'Greece',      lat:36.4000,  lng:25.4167,   note:'Minoan eruption ~1600 BCE may have inspired the Atlantis legend.', url:'https://www.santorini.com/' },
+  { id:2606, name:'Mount St. Helens',                    type:'volcano', state:'WA',          lat:46.1912,  lng:-122.1944, note:'1980 eruption removed 400 m from the summit. Pyroclastic flow at 670 km/h.', url:'https://www.nps.gov/msh/' },
+  { id:2607, name:'Stromboli',                           type:'volcano', state:'Italy',       lat:38.7890,  lng:15.2128,   note:'"Lighthouse of the Mediterranean." Nearly continuous eruptions for 2,000 years.', url:'https://www.stromboli.net/' },
+  { id:2608, name:'Cotopaxi',                            type:'volcano', state:'Ecuador',     lat:-0.6830,  lng:-78.4361,  note:"One of world's highest active volcanoes (5,897 m). Ecuador.", url:'https://www.ambiente.gob.ec/' },
+  { id:2609, name:'Krakatau (Anak Krakatau)',            type:'volcano', state:'Indonesia',   lat:-6.1025,  lng:105.4230,  note:'1883 eruption killed 36,000; the sound heard 4,800 km away. "Son of Krakatoa" active today.', url:'https://www.indonesia.travel/' },
+  { id:2610, name:'Eyjafjallajökull',                    type:'volcano', state:'Iceland',     lat:63.6324,  lng:-19.6208,  note:'2010 eruption shut European airspace for 6 days. Ash cloud reached 9 km altitude.', url:'https://www.south.is/' },
+  { id:2611, name:'Mauna Loa',                           type:'volcano', state:'HI',          lat:19.4756,  lng:-155.6054, note:"World's largest active volcano by volume. Erupted 2022 for first time since 1984.", url:'https://www.usgs.gov/volcanoes/mauna-loa' },
+  { id:2612, name:'Mount Pinatubo',                      type:'volcano', state:'Philippines', lat:15.1428,  lng:120.3500,  note:'1991 eruption was 2nd largest of 20th century. Created Crater Lake. Luzon island.', url:'https://www.phivolcs.dost.gov.ph/' },
+
+  // ── SAFARI & WILDLIFE ────────────────────────────────────────────────────────
+  { id:2701, name:'Serengeti National Park',             type:'safari', state:'Tanzania',     lat:-2.3333,  lng:34.8333,   note:'2M+ wildebeest & zebra annual migration — greatest wildlife event on Earth.', url:'https://www.tanzaniaparks.go.tz/' },
+  { id:2702, name:'Masai Mara National Reserve',         type:'safari', state:'Kenya',        lat:-1.5031,  lng:35.1430,   note:'Prime lion country; Great Migration river crossings Jul–Oct. UNESCO WH.', url:'https://www.maasaimara.com/' },
+  { id:2703, name:'Kruger National Park',                type:'safari', state:'South Africa', lat:-23.9884, lng:31.5547,   note:"Africa's most famous game reserve. Big Five. 2M hectares.", url:'https://www.sanparks.org/parks/kruger/' },
+  { id:2704, name:'Okavango Delta',                      type:'safari', state:'Botswana',     lat:-19.2896, lng:22.8581,   note:"World's largest inland delta. 11,000 sq mi of wilderness. UNESCO WH.", url:'https://www.botswanatourism.co.bw/' },
+  { id:2705, name:'Komodo National Park',                type:'safari', state:'Indonesia',    lat:-8.5500,  lng:119.4896,  note:"Komodo dragons — world's largest lizard. Pristine coral reefs. UNESCO WH.", url:'https://komodonationalpark.org/' },
+  { id:2706, name:'Borneo Rainforest (Kinabalu)',        type:'safari', state:'Malaysia',     lat:6.0750,   lng:116.5560,  note:"Orangutans, proboscis monkeys, pygmy elephants. Earth's oldest rainforest (~130M years). UNESCO WH.", url:'https://www.sabahtourism.com/' },
+  { id:2707, name:'Amboseli National Park',              type:'safari', state:'Kenya',        lat:-2.6528,  lng:37.2530,   note:'Classic Kilimanjaro backdrop with 1,600 resident elephants.', url:'https://www.kws.go.ke/' },
+  { id:2708, name:'Pantanal',                            type:'safari', state:'Brazil/Bolivia',lat:-18.0000, lng:-57.0000, note:"World's largest tropical wetland. Highest jaguar density on Earth. UNESCO WH.", url:'https://www.pantanal.org/' },
+  { id:2709, name:'Antarctic Peninsula',                 type:'safari', state:'Antarctica',   lat:-64.7723, lng:-63.0000,  note:'Emperor penguins, leopard seals, humpback whales. Untouched wilderness.', url:'https://iaato.org/' },
+  { id:2710, name:'Chobe National Park',                 type:'safari', state:'Botswana',     lat:-17.8193, lng:24.8575,   note:'Highest elephant density in Africa; 50,000+ elephants. Chobe River.', url:'https://www.botswanatourism.co.bw/' },
+
+  // ── UNESCO WORLD HERITAGE (iconic sites not covered above) ───────────────────
+  { id:2801, name:'Venice and its Lagoon',               type:'unesco', state:'Italy',        lat:45.4408,  lng:12.3155,   note:'Unique canal city built on 118 islands. 400+ bridges. UNESCO WH since 1987.', url:'https://www.veneziaunica.it/' },
+  { id:2802, name:'Dubrovnik Old City',                  type:'unesco', state:'Croatia',      lat:42.6417,  lng:18.1108,   note:'"Pearl of the Adriatic." Intact medieval limestone walls. UNESCO WH.', url:'https://www.visitdubrovnik.hr/' },
+  { id:2803, name:'Amalfi Coast',                        type:'unesco', state:'Italy',        lat:40.6341,  lng:14.6027,   note:'Clifftop villages above terraced vineyards and azure sea. UNESCO WH 1997.', url:'https://www.amalficoast.it/' },
+  { id:2804, name:'Cinque Terre',                        type:'unesco', state:'Italy',        lat:44.1225,  lng:9.7172,    note:'Five colorful cliffside fishing villages. Ligurian coast. UNESCO WH 1997.', url:'https://www.cinqueterre.com/' },
+  { id:2805, name:'Banff & Jasper (Canadian Rockies)',   type:'unesco', state:'Canada',       lat:51.4968,  lng:-115.9281, note:'Four adjacent national parks. Icefields Parkway, turquoise lakes. UNESCO WH.', url:'https://www.pc.gc.ca/banff' },
+  { id:2806, name:'Old City of Jerusalem',               type:'unesco', state:'Israel',       lat:31.7767,  lng:35.2345,   note:'Sacred to Judaism, Christianity, Islam. Wailing Wall, Dome of the Rock. UNESCO WH.', url:'https://whc.unesco.org/en/list/148' },
+  { id:2807, name:'Historic Medina of Fez',              type:'unesco', state:'Morocco',      lat:34.0656,  lng:-4.9744,   note:"World's largest car-free urban area. 9,000+ medieval alleys. UNESCO WH.", url:'https://whc.unesco.org/en/list/170' },
+  { id:2808, name:'Luang Prabang',                       type:'unesco', state:'Laos',         lat:19.8906,  lng:102.1353,  note:"Buddhist temples, French colonial architecture, monks' alms-giving ceremony. UNESCO WH.", url:'https://whc.unesco.org/en/list/479' },
+  { id:2809, name:'Historic Centre of Havana',           type:'unesco', state:'Cuba',         lat:23.1353,  lng:-82.3588,  note:'Baroque colonial architecture, classic cars. Old Havana. UNESCO WH.', url:'https://whc.unesco.org/en/list/204' },
+  { id:2810, name:'Historic Centre of Prague',           type:'unesco', state:'Czechia',      lat:50.0875,  lng:14.4214,   note:'Hradčany, Malá Strana, Old Town, Nové Město — 1,000 years of history. UNESCO WH.', url:'https://whc.unesco.org/en/list/616' },
+  { id:2811, name:'Ruins of Kilwa Kisiwani',             type:'unesco', state:'Tanzania',     lat:-8.9625,  lng:39.5164,   note:'Swahili sultanate trade center 9th–16th c. UNESCO WH.', url:'https://whc.unesco.org/en/list/144' },
+  { id:2812, name:'Skellig Michael',                     type:'unesco', state:'Ireland',      lat:51.7736,  lng:-10.5397,  note:'Early Christian monastery on a sea-stack. Star Wars location. UNESCO WH.', url:'https://whc.unesco.org/en/list/757' },
+  { id:2813, name:'Historic Town of Hallstatt',          type:'unesco', state:'Austria',      lat:47.5622,  lng:13.6493,   note:'Alpine lakeside village; 7,000-year-old salt mines. UNESCO WH.', url:'https://whc.unesco.org/en/list/806' },
+  { id:2814, name:'Yellowstone National Park',           type:'unesco', state:'WY',           lat:44.4280,  lng:-110.5885, note:"USA's first NP (1872); first UNESCO WH in the Americas. Geysers, hot springs, wildlife.", url:'https://www.nps.gov/yell/' },
+  { id:2815, name:'Kakadu National Park',                type:'unesco', state:'Australia',    lat:-12.8675, lng:132.4705,  note:'Aboriginal rock art up to 20,000 years old. Wetlands teeming with wildlife. UNESCO WH.', url:'https://parksaustralia.gov.au/kakadu/' },
 ];
+
 
 // ─── PRE-PROCESS: co-location groups ─────────────────────────────────────────
 var locGroups = {};
