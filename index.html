@@ -153,18 +153,84 @@
   .site-card-wrap { padding: 0 12px 8px 30px; }
   .site-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
 
+  /* ── Login overlay ── */
+  .login-overlay { position: fixed; inset: 0; background: rgba(10,10,16,0.97); display: flex; align-items: center; justify-content: center; z-index: 9000; }
+  .login-overlay.hidden { display: none; }
+  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 40px; text-align: center; max-width: 360px; width: 90%; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+  .login-card h2 { font-size: 1.3rem; margin-bottom: 6px; }
+  .login-card p { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 28px; }
+  .login-users { display: flex; gap: 14px; justify-content: center; }
+  .login-user-btn { flex: 1; padding: 18px 12px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 1rem; font-weight: 700; transition: all 0.15s; }
+  .login-user-btn:hover { border-color: var(--accent); background: rgba(74,158,255,0.08); }
+  .login-user-btn .avatar { font-size: 2rem; display: block; margin-bottom: 6px; }
+
+  /* ── User badge in header ── */
+  .user-badge { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .user-badge-name { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); white-space: nowrap; }
+  .user-badge-name.dan    { color: var(--c-dan);    border-color: rgba(74,158,255,0.4);  background: rgba(74,158,255,0.08); }
+  .user-badge-name.hannah { color: var(--c-hannah); border-color: rgba(244,114,182,0.4); background: rgba(244,114,182,0.08); }
+  .switch-btn { font-size: 0.72rem; color: var(--text-dim); background: none; border: none; cursor: pointer; padding: 4px 2px; white-space: nowrap; }
+  .switch-btn:hover { color: var(--text); }
+
+  /* ── Progress ── */
+  .progress-section { padding: 8px 12px 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .progress-overall { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .progress-label { font-size: 0.72rem; color: var(--text-dim); flex: 1; }
+  .progress-pct { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
+  .progress-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+  .type-group-label { display: flex; align-items: center; justify-content: space-between; }
+  .group-progress { font-size: 0.6rem; color: var(--text-dim); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  /* ── Mobile / tablet ── */
+  @media (max-width: 900px) {
+    .sidebar { width: 320px; }
+  }
   @media (max-width: 700px) {
     .app { flex-direction: column; }
-    #map { height: 50vh; }
-    .sidebar { width: 100%; height: 50vh; border-left: none; border-top: 1px solid var(--border); }
+    #map { height: 45vh; min-height: 220px; }
+    .sidebar { width: 100%; flex: 1; border-left: none; border-top: 1px solid var(--border); overflow-y: auto; }
+    .sidebar-controls { padding: 8px 10px; gap: 6px; }
+    .type-filter-body { max-height: 180px; }
+    header h1 { font-size: 0.95rem; }
+    .view-toggle { font-size: 0.72rem; padding: 3px 8px; }
+    .user-badge-name { font-size: 0.72rem; padding: 3px 8px; }
+    .app.list-only #map { display: none; }
+    .app.list-only .sidebar { flex: 1; height: 100%; }
+  }
+  @media (max-width: 480px) {
+    .sidebar-controls label { font-size: 0.68rem; }
+    .row input, .row select { font-size: 0.76rem; }
+    .filter-chip { font-size: 0.65rem; padding: 2px 6px; }
+    .login-card { padding: 28px 20px; }
   }
 </style>
 </head>
 <body>
 
+<!-- Login overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h2>🗺️ Historic America</h2>
+    <p>Who's exploring today?</p>
+    <div class="login-users">
+      <button class="login-user-btn" onclick="loginAs('dan')">
+        <span class="avatar">👨</span>Dan
+      </button>
+      <button class="login-user-btn" onclick="loginAs('hannah')">
+        <span class="avatar">👩</span>Hannah
+      </button>
+    </div>
+  </div>
+</div>
+
 <header>
   <h1>🗺️ Historic America</h1>
   <button class="view-toggle" id="viewToggleBtn" onclick="toggleListOnly()">☰ List View</button>
+  <div class="user-badge">
+    <span class="user-badge-name" id="userBadge"></span>
+    <button class="switch-btn" onclick="switchUser()">switch</button>
+  </div>
 </header>
 
 <div class="app">
@@ -198,12 +264,20 @@
         <label>Visit filter</label>
         <div class="visit-filter">
           <button class="vf-btn active all"     onclick="setVisitFilter('all')"     id="vf-all">All</button>
-          <button class="vf-btn dan"             onclick="setVisitFilter('dan')"     id="vf-dan">Dan visited</button>
-          <button class="vf-btn hannah"          onclick="setVisitFilter('hannah')"  id="vf-hannah">Hannah visited</button>
-          <button class="vf-btn neither"         onclick="setVisitFilter('neither')" id="vf-neither">Neither visited</button>
+          <button class="vf-btn dan"             onclick="setVisitFilter('me')"      id="vf-me">I visited</button>
+          <button class="vf-btn hannah"          onclick="setVisitFilter('partner')" id="vf-partner">Partner visited</button>
+          <button class="vf-btn neither"         onclick="setVisitFilter('neither')" id="vf-neither">Neither</button>
+          <button class="vf-btn neither"         onclick="setVisitFilter('both')"    id="vf-both">Both</button>
         </div>
       </div>
       <div class="count-label" id="countLabel"></div>
+    </div>
+    <div class="progress-section" id="progressSection">
+      <div class="progress-overall">
+        <span class="progress-label" id="progressLabel">Loading…</span>
+        <span class="progress-pct" id="progressPct"></span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
     </div>
     <div class="type-filter-section">
       <div class="type-filter-header" onclick="toggleTypeFilters()">
@@ -227,6 +301,9 @@ const TYPES = {
   monument:          { label: 'National Monument',            color: '#f87171' },
   native_site:       { label: 'Ancient/Native American Site', color: '#4ade80' },
   space:             { label: 'Space History',                color: '#22d3ee' },
+  civil_rights:      { label: 'Civil Rights',                 color: '#ef4444' },
+  womens_history:    { label: "Women's History",              color: '#f43f8a' },
+  immigration:       { label: 'Immigration History',          color: '#14b8a6' },
   battlefield_rev:   { label: 'Revolutionary War Battlefield',color: '#f97316' },
   battlefield_1812:  { label: 'War of 1812 Battlefield',     color: '#fbbf24' },
   battlefield_civil: { label: 'Civil War Battlefield',        color: '#dc2626' },
@@ -243,6 +320,7 @@ const TYPE_GROUPS = [
   { label: 'Forts',                   types: ['fort_colonial', 'fort_rev', 'fort_civil', 'fort_frontier'] },
   { label: 'National Parks & Sites',  types: ['park', 'monument', 'memorial'] },
   { label: 'Cultural & Science',      types: ['native_site', 'space'] },
+  { label: 'Social History',          types: ['civil_rights', 'womens_history', 'immigration'] },
 ];
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
@@ -310,7 +388,7 @@ const SITES = [
   { id:138, name:'Jimmy Carter — Plains, Georgia',                     type:'grave', state:'GA', lat:32.0348, lng:-84.3974, note:'Plains, GA. Carter family home, deceased November 2024.', url:'https://www.nps.gov/jica/' },
   { id:139, name:'Ronald Reagan — Reagan Presidential Library',        type:'grave', state:'CA', lat:34.2520, lng:-118.8295, note:'Simi Valley, CA. Overlooking Simi Valley.', url:'https://www.reaganlibrary.gov' },
   { id:140, name:'George H.W. Bush — Bush Presidential Library',       type:'grave', state:'TX', lat:30.6180, lng:-96.3364, note:'College Station, TX. Buried alongside Barbara Bush and Robin.', url:'https://www.bush41.org' },
-  { id:141, name:'George W. Bush — Still Living',                      type:'grave', state:'TX', lat:32.8409, lng:-96.7847, note:'Still living as of 2025.', url:'' },
+  { id:141, name:'George W. Bush — Burial site TBD',                   type:'grave', state:'TX', lat:32.8409, lng:-96.7847, note:'Still living as of 2025. Planned burial at Bush Presidential Library, Dallas, TX.', url:'https://www.georgewbushlibrary.gov/' },
   // ── NATIONAL MEMORIALS ────────────────────────────────────────────────────
   { id:201, name:'Lincoln Memorial',                                   type:'memorial', state:'DC', lat:38.8893, lng:-77.0502, note:'Washington, DC. Dedicated 1922. Daniel Chester French sculpture.', url:'https://www.nps.gov/linc/' },
   { id:202, name:'Washington Monument',                                type:'memorial', state:'DC', lat:38.8895, lng:-77.0353, note:'Washington, DC. Tallest obelisk in the world at completion (555 ft).', url:'https://www.nps.gov/wamo/' },
@@ -400,17 +478,17 @@ const SITES = [
   { id:501, name:'George Washington Birthplace',           type:'birthplace', state:'VA', lat:38.1945, lng:-76.9219, note:'Westmoreland County, VA. Popes Creek Plantation. NM.', url:'https://www.nps.gov/gewa/' },
   { id:502, name:'John Adams Birthplace',                  type:'birthplace', state:'MA', lat:42.2557, lng:-71.0074, note:'Quincy, MA. Saltbox farmhouse, 1735.', url:'https://www.nps.gov/adam/' },
   { id:503, name:'Thomas Jefferson Birthplace',            type:'birthplace', state:'VA', lat:37.6815, lng:-78.4512, note:'Shadwell, VA. Marker only; house burned 1770.', url:'https://www.monticello.org/' },
-  { id:504, name:'James Madison Birthplace',               type:'birthplace', state:'VA', lat:38.3335, lng:-77.1085, note:'Port Conway, VA. Belle Grove Plantation site.', url:'https://www.montpelier.org/' },
-  { id:505, name:'James Monroe Birthplace',                type:'birthplace', state:'VA', lat:38.1268, lng:-76.5996, note:'Westmoreland County, VA. Monroe Farm site.', url:'https://www.monroefarm.org/' },
+  { id:504, name:'James Madison Birthplace',               type:'birthplace', state:'VA', lat:38.1794, lng:-77.1855, note:'Port Conway, King George County, VA. Belle Grove Plantation.', url:'https://www.montpelier.org/' },
+  { id:505, name:'James Monroe Birthplace',                type:'birthplace', state:'VA', lat:38.2420, lng:-76.9907, note:'Westmoreland County, VA. Archaeological site near Colonial Beach.', url:'https://www.monroebirtplace.org/' },
   { id:506, name:'Andrew Jackson Birthplace',              type:'birthplace', state:'SC', lat:34.9348, lng:-80.7698, note:'Waxhaws region, SC/NC border. Waxhaw, SC.', url:'https://www.nps.gov/anjo/' },
-  { id:507, name:'William Henry Harrison Birthplace',      type:'birthplace', state:'VA', lat:37.3440, lng:-77.0174, note:'Berkeley Plantation, Charles City County, VA.', url:'https://www.berkeleyplantation.com/' },
-  { id:508, name:'John Tyler Birthplace',                  type:'birthplace', state:'VA', lat:37.3518, lng:-77.0049, note:'Greenway, Charles City County, VA.', url:'https://www.nps.gov/jotr/' },
-  { id:509, name:'James K. Polk Birthplace',               type:'birthplace', state:'NC', lat:34.9749, lng:-80.7629, note:'Pineville, NC. State historic site.', url:'https://www.polk.ncpublicschools.gov/' },
+  { id:507, name:'William Henry Harrison Birthplace',      type:'birthplace', state:'VA', lat:37.2170, lng:-77.1800, note:'Berkeley Plantation, Charles City County, VA. James River.', url:'https://www.berkeleyplantation.com/' },
+  { id:508, name:'John Tyler Birthplace',                  type:'birthplace', state:'VA', lat:37.3380, lng:-77.0757, note:'Greenway, Charles City County, VA. John Tyler Memorial Hwy.', url:'https://www.nps.gov/jotr/' },
+  { id:509, name:'James K. Polk Birthplace',               type:'birthplace', state:'NC', lat:35.0772, lng:-80.8828, note:'Pineville, NC. State historic site with reconstructed house.', url:'https://historicsites.nc.gov/all-sites/president-james-k-polk' },
   { id:510, name:'Millard Fillmore Birthplace',            type:'birthplace', state:'NY', lat:42.5431, lng:-78.3700, note:'Summerhill, Cayuga County, NY. Log cabin site.', url:'https://www.millard-fillmore.org/' },
   { id:511, name:'Franklin Pierce Birthplace',             type:'birthplace', state:'NH', lat:43.1960, lng:-71.9312, note:'Hillsborough, NH. Log cabin replica.', url:'https://www.nhstateparks.org/' },
   { id:512, name:'James Buchanan Birthplace',              type:'birthplace', state:'PA', lat:39.9248, lng:-77.7858, note:'Cove Gap (Stony Batter), PA. Mercersburg area.', url:'https://www.nps.gov/jabu/' },
   { id:513, name:'Abraham Lincoln Birthplace',             type:'birthplace', state:'KY', lat:37.5349, lng:-85.7285, note:'Hodgenville, KY. Knob Creek Farm. NHS.', url:'https://www.nps.gov/abli/' },
-  { id:514, name:'Andrew Johnson Birthplace',              type:'birthplace', state:'NC', lat:35.5860, lng:-77.3718, note:'Raleigh, NC. Mordecai Historic Park.', url:'https://www.raleighnc.gov/mordecai' },
+  { id:514, name:'Andrew Johnson Birthplace',              type:'birthplace', state:'NC', lat:35.7927, lng:-78.6326, note:'Raleigh, NC. Mordecai Historic Park. 1 Mimosa St.', url:'https://www.raleighnc.gov/mordecai' },
   { id:515, name:'Ulysses S. Grant Birthplace',            type:'birthplace', state:'OH', lat:38.8012, lng:-83.9955, note:'Point Pleasant, OH. Cottage preserved.', url:'https://www.ohiohistory.org/' },
   { id:516, name:'Rutherford B. Hayes Birthplace',         type:'birthplace', state:'OH', lat:40.8034, lng:-83.2799, note:'Delaware, OH. Birthplace marker.', url:'https://www.rbhayes.org/' },
   { id:517, name:'James A. Garfield Birthplace',           type:'birthplace', state:'OH', lat:41.5619, lng:-81.1254, note:'Orange Township (Moreland Hills), OH.', url:'https://www.nps.gov/jaga/' },
@@ -421,8 +499,8 @@ const SITES = [
   { id:522, name:'Theodore Roosevelt Birthplace',          type:'birthplace', state:'NY', lat:40.7397, lng:-73.9900, note:'Manhattan, NYC. NHS. Reconstructed brownstone.', url:'https://www.nps.gov/thrb/' },
   { id:523, name:'William Howard Taft Birthplace',         type:'birthplace', state:'OH', lat:39.1148, lng:-84.5108, note:'Cincinnati, OH. NHS.', url:'https://www.nps.gov/wiho/' },
   { id:524, name:'Woodrow Wilson Birthplace',              type:'birthplace', state:'VA', lat:37.9680, lng:-79.3897, note:'Staunton, VA. Presbyterian manse.', url:'https://www.woodrowwilson.org/' },
-  { id:525, name:'Warren G. Harding Birthplace',           type:'birthplace', state:'OH', lat:40.5987, lng:-83.1274, note:'Blooming Grove, OH. Small frame house.', url:'https://www.hardinghome.org/' },
-  { id:526, name:'Calvin Coolidge Birthplace',             type:'birthplace', state:'VT', lat:43.4640, lng:-72.5998, note:'Plymouth Notch, VT. Historic district.', url:'https://historicsites.vermont.gov/' },
+  { id:525, name:'Warren G. Harding Birthplace',           type:'birthplace', state:'OH', lat:40.7057, lng:-82.7124, note:'Blooming Grove, OH. Historical marker on Ohio Route 97.', url:'https://www.hardinghome.org/' },
+  { id:526, name:'Calvin Coolidge Birthplace',             type:'birthplace', state:'VT', lat:43.5348, lng:-72.7212, note:'Plymouth Notch, VT. Calvin Coolidge Homestead District.', url:'https://historicsites.vermont.gov/' },
   { id:527, name:'Herbert Hoover Birthplace',              type:'birthplace', state:'IA', lat:41.6627, lng:-91.3530, note:'West Branch, IA. NHS. Cottage and presidential library.', url:'https://www.nps.gov/heho/' },
   { id:528, name:'Franklin D. Roosevelt Birthplace',       type:'birthplace', state:'NY', lat:41.7357, lng:-73.9298, note:'Hyde Park, NY. Springwood estate. NHS.', url:'https://www.nps.gov/hofr/' },
   { id:529, name:'Harry S. Truman Birthplace',             type:'birthplace', state:'MO', lat:37.1884, lng:-94.3524, note:'Lamar, MO. Frame house, state historic site.', url:'https://mostateparks.com/' },
@@ -468,7 +546,7 @@ const SITES = [
   { id:803, name:'Smithsonian Air and Space Museum',       type:'space', state:'DC', lat:38.8882, lng:-77.0199, note:'Washington, DC. Apollo 11 capsule, Wright Flyer, Space Shuttle Discovery.', url:'https://airandspace.si.edu/' },
   { id:804, name:'US Space & Rocket Center',               type:'space', state:'AL', lat:34.7131, lng:-86.6553, note:'Huntsville, AL. Saturn V on display. Space Camp HQ.', url:'https://www.rocketcenter.com/' },
   { id:805, name:'Space Center Houston',                   type:'space', state:'TX', lat:29.5518, lng:-95.0981, note:'Clear Lake City, TX. Full Saturn V, Shuttle Inspiration on 747.', url:'https://spacecenter.org/' },
-  { id:806, name:'Tranquility Base (Apollo 11)',           type:'space', state:'Moon', lat:0.6741, lng:23.4733, note:'Mare Tranquillitatis, Moon. First human landing, July 20, 1969. Coordinates approximate.', url:'https://nssdc.gsfc.nasa.gov/' },
+  { id:806, name:'Tranquility Base (Apollo 11)',           type:'space', state:'Moon', lat:0.6741, lng:23.4733, noPlot:true, note:'Mare Tranquillitatis, Moon. First human landing, July 20, 1969. Not plottable on Earth map.', url:'https://nssdc.gsfc.nasa.gov/' },
   { id:807, name:'Cape Canaveral Air Force Station',       type:'space', state:'FL', lat:28.4889, lng:-80.5778, note:'Cape Canaveral, FL. First US satellite (Explorer 1) launched here 1958.', url:'https://www.nps.gov/cana/' },
   { id:808, name:'Goddard Space Flight Center',            type:'space', state:'MD', lat:39.0040, lng:-76.8780, note:'Greenbelt, MD. First NASA center (1959). Hubble support hub.', url:'https://www.nasa.gov/goddard/' },
   { id:809, name:'White Sands Missile Range Museum',       type:'space', state:'NM', lat:32.3799, lng:-106.4790, note:'White Sands, NM. V-2 launches, first rocket tests. Near Trinity Site.', url:'https://www.wsmr.army.mil/Museum/' },
@@ -480,7 +558,7 @@ const SITES = [
   { id:1002, name:'Bunker Hill',                           type:'battlefield_rev', state:'MA', lat:42.3762, lng:-71.0608, note:'June 17, 1775. British victory but devastating losses. Boston NHP.', url:'https://www.nps.gov/bost/' },
   { id:1003, name:'Fort Ticonderoga',                      type:'battlefield_rev', state:'NY', lat:43.8448, lng:-73.3885, note:'May 1775. Ethan Allen & Green Mountain Boys capture British fort.', url:'https://www.fortticonderoga.org/' },
   { id:1004, name:'Saratoga Battlefield',                  type:'battlefield_rev', state:'NY', lat:43.0026, lng:-73.6401, note:'Oct 1777. Turning point — brought France into the war. NHP.', url:'https://www.nps.gov/sara/' },
-  { id:1005, name:'Valley Forge',                          type:'battlefield_rev', state:'PA', lat:40.1018, lng:-75.3941, note:'Winter 1777–78. Continental Army encampment. NHP.', url:'https://www.nps.gov/vafo/' },
+  { id:1005, name:'Valley Forge',                          type:'battlefield_rev', state:'PA', lat:40.1013, lng:-75.3976, note:'Winter 1777–78. Continental Army encampment. NHP.', url:'https://www.nps.gov/vafo/' },
   { id:1006, name:'Brandywine Battlefield',                type:'battlefield_rev', state:'PA', lat:39.8628, lng:-75.5635, note:'Sep 11, 1777. British defeat Washington; path to Philadelphia opened.', url:'https://www.brandywinemuseum.org/' },
   { id:1007, name:'Guilford Courthouse',                   type:'battlefield_rev', state:'NC', lat:36.1300, lng:-79.8680, note:'Mar 1781. Costly British "victory" weakened Cornwallis. NMP.', url:'https://www.nps.gov/guco/' },
   { id:1008, name:'Kings Mountain',                        type:'battlefield_rev', state:'SC', lat:35.1375, lng:-81.4238, note:'Oct 1780. Patriot militia defeat Loyalist force. NMP.', url:'https://www.nps.gov/kimo/' },
@@ -491,22 +569,22 @@ const SITES = [
   { id:1013, name:'Camden Battlefield',                    type:'battlefield_rev', state:'SC', lat:34.2671, lng:-80.5995, note:'Aug 1780. Worst American defeat — Gates routed by Cornwallis.', url:'https://www.historic-camden.net/' },
 
   // ── War of 1812 Battlefields ──────────────────────────────────────────────
-  { id:1101, name:'Fort McHenry',                          type:'battlefield_1812', state:'MD', lat:39.2636, lng:-76.5796, note:'Sep 1814. British naval bombardment; "Star-Spangled Banner" written here.', url:'https://www.nps.gov/fomc/' },
+  { id:1101, name:'Fort McHenry',                          type:'battlefield_1812', state:'MD', lat:39.2634, lng:-76.5798, note:'Sep 1814. British naval bombardment; "Star-Spangled Banner" written here.', url:'https://www.nps.gov/fomc/' },
   { id:1102, name:'Battle of New Orleans (Chalmette)',     type:'battlefield_1812', state:'LA', lat:29.9401, lng:-89.9906, note:'Jan 1815. Jackson\'s decisive victory after peace treaty signed. JMNM.', url:'https://www.nps.gov/jela/' },
   { id:1103, name:'Plattsburgh Battlefield',               type:'battlefield_1812', state:'NY', lat:44.6842, lng:-73.4554, note:'Sep 1814. Naval and land battle repels British invasion from Canada.', url:'https://battleofplattsburgh.org/' },
   { id:1104, name:'Thames Battlefield (Tecumseh\'s death)', type:'battlefield_1812', state:'ON', lat:42.5500, lng:-81.9700, note:'Oct 1813. Harrison defeats British-Tecumseh alliance; Tecumseh killed.', url:'https://www.pc.gc.ca/' },
   { id:1105, name:'Lundy\'s Lane Battlefield',             type:'battlefield_1812', state:'ON', lat:43.0960, lng:-79.0730, note:'Jul 1814. Bloodiest battle of the war; fought near Niagara Falls.', url:'https://www.niagarafallscanada.ca/' },
   { id:1106, name:'Horseshoe Bend',                        type:'battlefield_1812', state:'AL', lat:32.9749, lng:-85.7381, note:'Mar 1814. Jackson defeats Creek Nation; opens Alabama to US settlement. NMP.', url:'https://www.nps.gov/hobe/' },
-  { id:1107, name:'Put-in-Bay (Lake Erie)',                type:'battlefield_1812', state:'OH', lat:41.6540, lng:-82.8183, note:'Sep 1813. Perry\'s naval victory gives US control of Lake Erie.', url:'https://www.nps.gov/pevi/' },
+  { id:1107, name:'Put-in-Bay (Lake Erie)',                type:'battlefield_1812', state:'OH', lat:41.6590, lng:-82.8217, note:'Sep 1813. Perry\'s naval victory gives US control of Lake Erie.', url:'https://www.nps.gov/pevi/' },
 
   // ── Civil War Battlefields ────────────────────────────────────────────────
   { id:1201, name:'Fort Sumter',                           type:'battlefield_civil', state:'SC', lat:32.7523, lng:-79.8745, note:'Apr 1861. Confederate bombardment starts the Civil War. NM.', url:'https://www.nps.gov/fosu/' },
-  { id:1202, name:'Bull Run (Manassas)',                   type:'battlefield_civil', state:'VA', lat:38.8134, lng:-77.5265, note:'Jul 1861 & Aug 1862. Two Union defeats. NB.', url:'https://www.nps.gov/mana/' },
+  { id:1202, name:'Bull Run (Manassas)',                   type:'battlefield_civil', state:'VA', lat:38.8156, lng:-77.5259, note:'Jul 1861 & Aug 1862. Two Union defeats. NB.', url:'https://www.nps.gov/mana/' },
   { id:1203, name:'Shiloh',                                type:'battlefield_civil', state:'TN', lat:35.1457, lng:-88.3338, note:'Apr 1862. 23,000 casualties; Grant survives crisis. NMP.', url:'https://www.nps.gov/shil/' },
-  { id:1204, name:'Antietam',                              type:'battlefield_civil', state:'MD', lat:39.4764, lng:-77.7436, note:'Sep 17, 1862. Bloodiest single day in US history. Led to Emancipation Proclamation.', url:'https://www.nps.gov/anti/' },
+  { id:1204, name:'Antietam',                              type:'battlefield_civil', state:'MD', lat:39.4668, lng:-77.7435, note:'Sep 17, 1862. Bloodiest single day in US history. Led to Emancipation Proclamation.', url:'https://www.nps.gov/anti/' },
   { id:1205, name:'Fredericksburg',                        type:'battlefield_civil', state:'VA', lat:38.2890, lng:-77.4717, note:'Dec 1862. Union assault repulsed with massive casualties.', url:'https://www.nps.gov/frsp/' },
   { id:1206, name:'Chancellorsville',                      type:'battlefield_civil', state:'VA', lat:38.3082, lng:-77.6372, note:'May 1863. Lee\'s "perfect battle." Stonewall Jackson shot by own men.', url:'https://www.nps.gov/frsp/' },
-  { id:1207, name:'Gettysburg',                            type:'battlefield_civil', state:'PA', lat:39.8117, lng:-77.2353, note:'Jul 1–3, 1863. Turning point in East. 50,000 casualties. NMP.', url:'https://www.nps.gov/gett/' },
+  { id:1207, name:'Gettysburg',                            type:'battlefield_civil', state:'PA', lat:39.8116, lng:-77.2382, note:'Jul 1–3, 1863. Turning point in East. 50,000 casualties. NMP.', url:'https://www.nps.gov/gett/' },
   { id:1208, name:'Vicksburg',                             type:'battlefield_civil', state:'MS', lat:32.3468, lng:-90.8681, note:'May–Jul 1863. Siege gives Union control of Mississippi River. NMP.', url:'https://www.nps.gov/vick/' },
   { id:1209, name:'Chickamauga',                           type:'battlefield_civil', state:'GA', lat:34.9335, lng:-85.2739, note:'Sep 1863. Second bloodiest battle. Confederate victory. NMP.', url:'https://www.nps.gov/chch/' },
   { id:1210, name:'Chattanooga',                           type:'battlefield_civil', state:'TN', lat:35.0024, lng:-85.2926, note:'Nov 1863. Grant breaks siege; opens path to Atlanta.', url:'https://www.nps.gov/chch/' },
@@ -554,30 +632,89 @@ const SITES = [
   { id:1610, name:'Fort Abraham Lincoln',                  type:'fort_frontier', state:'ND', lat:46.7721, lng:-100.8372, note:'Mandan, ND. Custer departed from here for Little Bighorn, 1876. State park.', url:'https://parkrec.nd.gov/' },
   { id:1611, name:'Fort Vancouver',                        type:'fort_frontier', state:'WA', lat:45.6226, lng:-122.6565, note:'Vancouver, WA. Hudson\'s Bay Co. 1824; key Pacific Northwest settlement. NHS.', url:'https://www.nps.gov/fova/' },
   { id:1612, name:'Fort Concho',                           type:'fort_frontier', state:'TX', lat:31.4566, lng:-100.4434, note:'San Angelo, TX. Best-preserved frontier post in Texas. Buffalo Soldiers.', url:'https://www.fortconcho.com/' },
+
+  // ── Civil Rights ──────────────────────────────────────────────────────────
+  { id:1701, name:'16th Street Baptist Church',            type:'civil_rights', state:'AL', lat:33.5168, lng:-86.8151, note:'Birmingham, AL. 1963 KKK bombing killed four girls. National Historic Landmark.', url:'https://www.16thstreetbaptist.org/' },
+  { id:1702, name:'Edmund Pettus Bridge',                  type:'civil_rights', state:'AL', lat:32.4033, lng:-87.0178, note:'Selma, AL. "Bloody Sunday" March 7, 1965. Selma to Montgomery NHT.', url:'https://www.nps.gov/semo/' },
+  { id:1703, name:'Dexter Avenue King Memorial Baptist Church', type:'civil_rights', state:'AL', lat:32.3773, lng:-86.3027, note:'Montgomery, AL. MLK\'s church during the 1955 Bus Boycott.', url:'https://dexterkingmemorial.org/' },
+  { id:1704, name:'National Civil Rights Museum (Lorraine Motel)', type:'civil_rights', state:'TN', lat:35.1346, lng:-90.0574, note:'Memphis, TN. Site of MLK assassination, April 4, 1968.', url:'https://civilrightsmuseum.org/' },
+  { id:1705, name:'Little Rock Central High School NHS',   type:'civil_rights', state:'AR', lat:34.7373, lng:-92.3002, note:'Little Rock, AR. 1957 desegregation crisis; nine Black students integrate.', url:'https://www.nps.gov/chsc/' },
+  { id:1706, name:'Brown v. Board of Education NHS',       type:'civil_rights', state:'KS', lat:39.0379, lng:-95.6761, note:'Topeka, KS. Monroe Elementary School — landmark 1954 SCOTUS case.', url:'https://www.nps.gov/brvb/' },
+  { id:1707, name:'Birmingham Civil Rights Institute',     type:'civil_rights', state:'AL', lat:33.5161, lng:-86.8145, note:'Birmingham, AL. Documents the Civil Rights Movement. Adjacent to 16th St. Church.', url:'https://www.bcri.org/' },
+  { id:1708, name:'Rosa Parks Museum',                     type:'civil_rights', state:'AL', lat:32.3768, lng:-86.3114, note:'Montgomery, AL. Site of 1955 bus arrest. Troy University campus.', url:'https://www.troy.edu/rosaparks/' },
+  { id:1709, name:'National Memorial for Peace and Justice', type:'civil_rights', state:'AL', lat:32.3726, lng:-86.2922, note:'Montgomery, AL. EJI lynching memorial. 800+ steel monuments, one per county.', url:'https://museumandmemorial.eji.org/' },
+  { id:1710, name:'Martin Luther King Jr. Birth Home',     type:'civil_rights', state:'GA', lat:33.7496, lng:-84.3726, note:'Atlanta, GA. 501 Auburn Ave, Sweet Auburn district. NHS.', url:'https://www.nps.gov/malu/' },
+  { id:1711, name:'Ebenezer Baptist Church',               type:'civil_rights', state:'GA', lat:33.7497, lng:-84.3726, note:'Atlanta, GA. Church where MLK Jr. and Sr. preached. MLK NHP.', url:'https://www.nps.gov/malu/' },
+  { id:1712, name:'Medgar Evers Home NHS',                 type:'civil_rights', state:'MS', lat:32.3166, lng:-90.1986, note:'Jackson, MS. NAACP leader assassinated here June 12, 1963.', url:'https://www.nps.gov/mcev/' },
+
+  // ── Women's History ───────────────────────────────────────────────────────
+  { id:1801, name:"Women's Rights NHP",                    type:'womens_history', state:'NY', lat:42.9082, lng:-76.8166, note:"Seneca Falls, NY. 1848 Women's Rights Convention. First demand for women's suffrage.", url:'https://www.nps.gov/wori/' },
+  { id:1802, name:'Susan B. Anthony House NHS',            type:'womens_history', state:'NY', lat:43.1346, lng:-77.6157, note:'Rochester, NY. Anthony lived here 1866–1906. Arrested for voting in 1872.', url:'https://susanb.org/' },
+  { id:1803, name:'Eleanor Roosevelt NHS (Val-Kill)',      type:'womens_history', state:'NY', lat:41.7621, lng:-73.8989, note:"Hyde Park, NY. ER's personal retreat; only NHS dedicated to a First Lady.", url:'https://www.nps.gov/elro/' },
+  { id:1804, name:'Clara Barton NHS',                      type:'womens_history', state:'MD', lat:38.9676, lng:-77.1401, note:'Glen Echo, MD. Home of Red Cross founder. First NHS honoring a woman.', url:'https://www.nps.gov/clba/' },
+  { id:1805, name:'Harriet Tubman NHP',                    type:'womens_history', state:'NY', lat:42.9112, lng:-76.5609, note:'Auburn, NY. Tubman\'s home and care facility. Underground Railroad conductor.', url:'https://www.nps.gov/hart/' },
+  { id:1806, name:'Harriet Tubman Underground Railroad NHP', type:'womens_history', state:'MD', lat:38.4502, lng:-76.0769, note:'Church Creek, MD. Tubman\'s birthplace region and escape routes. Visitor center.', url:'https://www.nps.gov/hatu/' },
+  { id:1807, name:'Belmont-Paul Women\'s Equality NM',     type:'womens_history', state:'DC', lat:38.8908, lng:-77.0034, note:'Washington, DC. HQ of National Woman\'s Party 1929–1997. Capitol Hill.', url:'https://www.nps.gov/bepa/' },
+
+  // ── Immigration History ───────────────────────────────────────────────────
+  { id:1901, name:'Ellis Island Immigration Museum',       type:'immigration', state:'NY', lat:40.6992, lng:-74.0424, note:'New York Harbor. 12 million immigrants processed 1892–1954. Part of Statue of Liberty NM.', url:'https://www.libertyellisfoundation.org/' },
+  { id:1902, name:'Angel Island Immigration Station',      type:'immigration', state:'CA', lat:37.8693, lng:-122.4264, note:'San Francisco Bay. "Ellis Island of the West." Asian immigrants detained 1910–1940.', url:'https://www.aiisf.org/' },
+  { id:1903, name:'Lower East Side Tenement Museum',       type:'immigration', state:'NY', lat:40.7188, lng:-73.9900, note:'Manhattan, NYC. 97 Orchard St. Preserved 1863 tenement; immigrant family stories.', url:'https://www.tenement.org/' },
+  { id:1904, name:'Manzanar National Historic Site',       type:'immigration', state:'CA', lat:36.7278, lng:-118.1553, note:'Owens Valley, CA. WWII Japanese American incarceration camp. 10,000 detained.', url:'https://www.nps.gov/manz/' },
+  { id:1905, name:'Heart Mountain Relocation Center',      type:'immigration', state:'WY', lat:44.6752, lng:-108.9517, note:'Park County, WY. WWII incarceration of ~14,000 Japanese Americans.', url:'https://heartmountain.org/' },
 ];
 
 // ─── PRE-PROCESS: co-location groups ─────────────────────────────────────────
 var locGroups = {};
 SITES.forEach(function(s) {
+  if (s.noPlot) { s._locKey = null; return; }
   var k = s.lat.toFixed(3) + ',' + s.lng.toFixed(3);
   s._locKey = k;
   if (!locGroups[k]) locGroups[k] = [];
   locGroups[k].push(s);
 });
 SITES.forEach(function(s) {
-  s._colocated = locGroups[s._locKey].filter(function(o) { return o.id !== s.id; });
+  s._colocated = s._locKey ? locGroups[s._locKey].filter(function(o) { return o.id !== s.id; }) : [];
 });
 
-// ─── VISIT LOG (localStorage) ─────────────────────────────────────────────────
-var VISITS_KEY = 'historic-map-visits-v1';
+// ─── USER SYSTEM ──────────────────────────────────────────────────────────────
+function getCurrentUser() { return localStorage.getItem('historic-map-user') || null; }
+function getPartner() { var u = getCurrentUser(); return u === 'dan' ? 'hannah' : 'dan'; }
 
-function getVisits() {
-  try { return JSON.parse(localStorage.getItem(VISITS_KEY) || '{}'); } catch(e) { return {}; }
+function loginAs(name) {
+  localStorage.setItem('historic-map-user', name);
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.body.className = 'user-' + name;
+  updateUserBadge();
+  renderMarkers();
+  renderList();
+  renderProgress();
+}
+
+function switchUser() {
+  localStorage.removeItem('historic-map-user');
+  document.getElementById('loginOverlay').classList.remove('hidden');
+}
+
+function updateUserBadge() {
+  var u = getCurrentUser();
+  if (!u) return;
+  var el = document.getElementById('userBadge');
+  var label = u === 'dan' ? '👨 Dan' : '👩 Hannah';
+  el.textContent = label;
+  el.className = 'user-badge-name ' + u;
+}
+
+// ─── VISIT LOG (per-user localStorage) ────────────────────────────────────────
+function getUserVisits(username) {
+  try { return JSON.parse(localStorage.getItem('historic-map-visits-' + username) || '{}'); } catch(e) { return {}; }
 }
 
 function getSiteVisit(siteId) {
-  var v = getVisits()[siteId];
-  return v || { dan: null, hannah: null };
+  return {
+    dan:    getUserVisits('dan')[siteId]    || null,
+    hannah: getUserVisits('hannah')[siteId] || null
+  };
 }
 
 function fmtDate(d) {
@@ -605,23 +742,21 @@ function hideLogInput(siteId, person) {
 function saveVisit(siteId, person) {
   var dateEl = document.getElementById('vlog-date-' + siteId + '-' + person);
   var date = dateEl ? dateEl.value : new Date().toISOString().split('T')[0];
-  var visits = getVisits();
-  if (!visits[siteId]) visits[siteId] = { dan: null, hannah: null };
-  visits[siteId][person] = date || new Date().toISOString().split('T')[0];
-  localStorage.setItem(VISITS_KEY, JSON.stringify(visits));
+  var visits = getUserVisits(person);
+  visits[siteId] = date || new Date().toISOString().split('T')[0];
+  localStorage.setItem('historic-map-visits-' + person, JSON.stringify(visits));
   refreshPopupVisit(siteId, person);
   renderList();
+  renderProgress();
 }
 
 function removeVisit(siteId, person) {
-  var visits = getVisits();
-  if (visits[siteId]) {
-    visits[siteId][person] = null;
-    if (!visits[siteId].dan && !visits[siteId].hannah) delete visits[siteId];
-    localStorage.setItem(VISITS_KEY, JSON.stringify(visits));
-  }
+  var visits = getUserVisits(person);
+  delete visits[siteId];
+  localStorage.setItem('historic-map-visits-' + person, JSON.stringify(visits));
   refreshPopupVisit(siteId, person);
   renderList();
+  renderProgress();
 }
 
 function refreshPopupVisit(siteId, person) {
@@ -720,7 +855,7 @@ function initMap() {
 
 function makeGroupIcon(visibleSites) {
   var types = [...new Set(visibleSites.map(function(s) { return s.type; }))];
-  var colors = types.map(function(t) { return TYPES[t].color; });
+  var colors = types.map(function(t) { return (TYPES[t] || { color: '#888' }).color; });
   var multi = colors.length > 1;
   var size = multi ? 16 : 12;
   var bg;
@@ -771,8 +906,19 @@ function renderMarkers() {
   });
   locMarkers = {};
   var visibleGroups = {};
+  var user = getCurrentUser();
+  var partner = getPartner();
   SITES.forEach(function(s) {
+    if (s.noPlot || !s._locKey) return;
     if (!activeFilters.has(s.type)) return;
+    if (visitFilter !== 'all') {
+      var myV    = user    ? !!getUserVisits(user)[s.id]    : false;
+      var partV  = partner ? !!getUserVisits(partner)[s.id] : false;
+      if (visitFilter === 'me'      && !myV)               return;
+      if (visitFilter === 'partner' && !partV)             return;
+      if (visitFilter === 'neither' && (myV || partV))     return;
+      if (visitFilter === 'both'    && !(myV && partV))    return;
+    }
     if (!visibleGroups[s._locKey]) visibleGroups[s._locKey] = [];
     visibleGroups[s._locKey].push(s);
   });
@@ -818,7 +964,7 @@ function initFilters() {
     g.className = 'type-group';
     var lbl = document.createElement('div');
     lbl.className = 'type-group-label';
-    lbl.textContent = group.label;
+    lbl.innerHTML = '<span>' + group.label + '</span><span class="group-progress" id="gp-' + group.label.replace(/\W/g,'') + '"></span>';
     g.appendChild(lbl);
     var chips = document.createElement('div');
     chips.className = 'type-chips';
@@ -842,11 +988,36 @@ function initFilters() {
 
 function setVisitFilter(f) {
   visitFilter = f;
-  ['all','dan','hannah','neither'].forEach(function(id) {
+  localStorage.setItem('historic-map-visit-filter', f);
+  ['all','me','partner','neither','both'].forEach(function(id) {
     var btn = document.getElementById('vf-' + id);
-    btn.classList.toggle('active', id === f);
+    if (btn) btn.classList.toggle('active', id === f);
   });
+  renderMarkers();
   renderList();
+}
+
+// ─── PROGRESS ─────────────────────────────────────────────────────────────────
+function renderProgress() {
+  var user = getCurrentUser();
+  if (!user) return;
+  var visits = getUserVisits(user);
+  var plottable = SITES.filter(function(s) { return !s.noPlot; });
+  var total = plottable.length;
+  var visited = plottable.filter(function(s) { return !!visits[s.id]; }).length;
+  var pct = total ? Math.round(visited / total * 100) : 0;
+  document.getElementById('progressLabel').textContent =
+    'You\'ve visited ' + visited + ' of ' + total + ' sites';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  TYPE_GROUPS.forEach(function(group) {
+    var el = document.getElementById('gp-' + group.label.replace(/\W/g,''));
+    if (!el) return;
+    var groupSites = plottable.filter(function(s) { return group.types.indexOf(s.type) !== -1; });
+    var gVisited = groupSites.filter(function(s) { return !!visits[s.id]; }).length;
+    el.textContent = gVisited + '/' + groupSites.length;
+  });
 }
 
 // ─── DISTANCE ─────────────────────────────────────────────────────────────────
@@ -881,15 +1052,19 @@ function useMyLocation() {
 // ─── LIST ─────────────────────────────────────────────────────────────────────
 function filteredSites() {
   var q = document.getElementById('searchInput').value.toLowerCase();
-  var visits = getVisits();
+  var user = getCurrentUser();
+  var partner = getPartner();
   return SITES.filter(function(s) {
     if (!activeFilters.has(s.type)) return false;
-    if (q && !s.name.toLowerCase().includes(q) && !s.state.toLowerCase().includes(q) && !TYPES[s.type].label.toLowerCase().includes(q)) return false;
+    var typeLabel = (TYPES[s.type] || {label:''}).label;
+    if (q && !s.name.toLowerCase().includes(q) && !s.state.toLowerCase().includes(q) && !typeLabel.toLowerCase().includes(q)) return false;
     if (visitFilter !== 'all') {
-      var v = visits[s.id] || {};
-      if (visitFilter === 'dan')     return !!v.dan;
-      if (visitFilter === 'hannah')  return !!v.hannah;
-      if (visitFilter === 'neither') return !v.dan && !v.hannah;
+      var myV   = user    ? !!getUserVisits(user)[s.id]    : false;
+      var partV = partner ? !!getUserVisits(partner)[s.id] : false;
+      if (visitFilter === 'me'      && !myV)            return false;
+      if (visitFilter === 'partner' && !partV)          return false;
+      if (visitFilter === 'neither' && (myV || partV))  return false;
+      if (visitFilter === 'both'    && !(myV && partV)) return false;
     }
     return true;
   });
@@ -909,48 +1084,42 @@ function renderList() {
   var wrap = document.getElementById('listWrap');
   wrap.innerHTML = '';
   var visibleIds = new Set(sites.map(function(s) { return s.id; }));
-  var visits = getVisits();
+  var danVisits    = getUserVisits('dan');
+  var hannahVisits = getUserVisits('hannah');
 
   sites.forEach(function(site) {
-    var t = TYPES[site.type];
-    var dist = origin ? haversine(origin.lat, origin.lng, site.lat, site.lng) : null;
+    var t = TYPES[site.type] || { label: site.type, color: '#888' };
+    var dist = (origin && !site.noPlot) ? haversine(origin.lat, origin.lng, site.lat, site.lng) : null;
     var distHtml = dist !== null ? '<span style="font-size:.72rem;color:var(--accent);white-space:nowrap;flex-shrink:0;">' + Math.round(dist).toLocaleString() + ' mi</span>' : '';
 
     var visibleSiblings = site._colocated.filter(function(o) { return visibleIds.has(o.id); });
     var uniqueSiblingTypes = [...new Set(visibleSiblings.map(function(o) { return o.type; }))];
     var allTypes = [site.type].concat(uniqueSiblingTypes);
     var dotsHtml = allTypes.map(function(tp) {
-      return '<span class="item-dot" style="background:' + TYPES[tp].color + '"></span>';
+      return '<span class="item-dot" style="background:' + (TYPES[tp] || {color:'#888'}).color + '"></span>';
     }).join('');
     var alsoHtml = uniqueSiblingTypes.length
-      ? '<span class="also-tag">+ ' + uniqueSiblingTypes.map(function(tp) { return TYPES[tp].label; }).join(', ') + '</span>'
+      ? '<span class="also-tag">+ ' + uniqueSiblingTypes.map(function(tp) { return (TYPES[tp] || {label:tp}).label; }).join(', ') + '</span>'
       : '';
 
-    // Visit badges
-    var v = visits[site.id] || {};
+    var danDate = danVisits[site.id] || null;
+    var hanDate = hannahVisits[site.id] || null;
     var badgesHtml = '';
-    if (v.dan || v.hannah) {
+    if (danDate || hanDate) {
       badgesHtml = '<div class="visit-badges">';
-      if (v.dan)    badgesHtml += '<span class="vbadge dan">D · ' + fmtDate(v.dan) + '</span>';
-      if (v.hannah) badgesHtml += '<span class="vbadge hannah">H · ' + fmtDate(v.hannah) + '</span>';
+      if (danDate) badgesHtml += '<span class="vbadge dan">D · ' + fmtDate(danDate) + '</span>';
+      if (hanDate) badgesHtml += '<span class="vbadge hannah">H · ' + fmtDate(hanDate) + '</span>';
       badgesHtml += '</div>';
     }
 
+    var noMapTag = site.noPlot ? '<span class="also-tag">🌙 off-map</span>' : '';
     var div = document.createElement('div');
     div.className = 'site-item' + (site.id === activeItemId ? ' active' : '');
     div.dataset.id = site.id;
     div.innerHTML = '<div class="item-dots">' + dotsHtml + '</div>'
       + '<div class="site-info">'
       + '<div class="site-name">' + site.name + '</div>'
-      + '<div class="site-meta"><span>' + t.label + '</span><span>' + site.state + '</span>' + alsoHtml + (dist !== null ? distHtml : '') + '</div>'
-      + '</div>'
-      + (badgesHtml || (dist !== null && alsoHtml === '' ? '' : ''));
-
-    // Rebuild: name row, then meta row, then visit badges on right
-    div.innerHTML = '<div class="item-dots">' + dotsHtml + '</div>'
-      + '<div class="site-info">'
-      + '<div class="site-name">' + site.name + '</div>'
-      + '<div class="site-meta"><span>' + t.label + '</span><span>' + site.state + '</span>' + alsoHtml + '</div>'
+      + '<div class="site-meta"><span>' + t.label + '</span><span>' + site.state + '</span>' + alsoHtml + noMapTag + '</div>'
       + '</div>'
       + (dist !== null ? distHtml : '')
       + badgesHtml;
@@ -968,7 +1137,7 @@ function activateItem(id, flyTo) {
     if (existing) return; // toggle off
     var site = SITES.find(function(s) { return s.id === id; });
     if (!site) return;
-    var groupSites = locGroups[site._locKey].filter(function(s) { return activeFilters.has(s.type); });
+    var groupSites = site._locKey ? locGroups[site._locKey].filter(function(s) { return activeFilters.has(s.type); }) : [site];
     var wrap = document.createElement('div');
     wrap.className = 'site-card-wrap';
     wrap.dataset.id = id;
@@ -987,7 +1156,7 @@ function activateItem(id, flyTo) {
   var active = document.querySelector('.site-item.active');
   if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   var site = SITES.find(function(s) { return s.id === id; });
-  if (!site || !flyTo) return;
+  if (!site || !flyTo || site.noPlot || !site._locKey) return;
   var m = locMarkers[site._locKey];
   if (m) clusterLayer.zoomToShowLayer(m, function() { m.openPopup(); });
 }
@@ -1005,11 +1174,34 @@ function toggleListOnly() {
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
+  // Restore user session
+  var savedUser = getCurrentUser();
+  if (savedUser) {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.body.className = 'user-' + savedUser;
+    updateUserBadge();
+  }
+
+  // Restore visit filter
+  var savedFilter = localStorage.getItem('historic-map-visit-filter');
+  if (savedFilter) setVisitFilter(savedFilter);
+
+  // Collapse type filter by default on small screens
+  if (window.innerWidth < 700) {
+    typeFiltersCollapsed = true;
+    document.getElementById('type-filters').classList.add('collapsed');
+    document.getElementById('tf-toggle').textContent = '▸';
+  }
+
   initMap();
   initFilters();
   renderMarkers();
   renderList();
-  document.getElementById('searchInput').addEventListener('input', renderList);
+  renderProgress();
+
+  document.getElementById('searchInput').addEventListener('input', function() {
+    renderList();
+  });
   document.getElementById('originInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') geocodeOrigin();
   });
