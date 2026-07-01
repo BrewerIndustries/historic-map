@@ -991,19 +991,25 @@ var listOnlyMode = false;
 
 // ─── MAP ──────────────────────────────────────────────────────────────────────
 var TILE_DEFS = [
-  { id:'dark',      label:'🌑 Dark',       url:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',                                    attr:'© Stadia Maps © OpenStreetMap' },
-  { id:'light',     label:'☀️ Light',      url:'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',                                         attr:'© Stadia Maps © OpenStreetMap' },
-  { id:'satellite', label:'🛰 Satellite',  url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',               attr:'© Esri' },
-  { id:'streets',   label:'🗺 Streets',    url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',                                    attr:'© OpenStreetMap © CARTO' },
+  { id:'dark',      label:'🌑 Dark',       url:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',      labelUrl:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',  attr:'© Esri' },
+  { id:'light',     label:'☀️ Light',      url:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',     labelUrl:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', attr:'© Esri' },
+  { id:'satellite', label:'🛰 Satellite',  url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',                     attr:'© Esri' },
+  { id:'streets',   label:'🗺 Streets',    url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',                                          attr:'© OpenStreetMap © CARTO' },
 ];
 var currentTileLayer = null;
+var currentLabelLayer = null;
 
 function setTile(id) {
   var def = TILE_DEFS.find(function(t) { return t.id === id; });
   if (!def) return;
   if (currentTileLayer) map.removeLayer(currentTileLayer);
+  if (currentLabelLayer) { map.removeLayer(currentLabelLayer); currentLabelLayer = null; }
   currentTileLayer = L.tileLayer(def.url, { attribution: def.attr, maxZoom: 19 });
   currentTileLayer.addTo(map);
+  if (def.labelUrl) {
+    currentLabelLayer = L.tileLayer(def.labelUrl, { maxZoom: 19 });
+    currentLabelLayer.addTo(map);
+  }
   document.querySelectorAll('.tile-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.tile === id);
   });
