@@ -1,11 +1,12 @@
 {
   "id": "historic-map",
-  "name": "Historic America Map",
-  "description": "Interactive map of presidential libraries, grave sites, national memorials, parks, and monuments — filterable, searchable, and sortable by distance.",
+  "name": "Historic Map",
+  "description": "Interactive world map of ~450 historic and cultural landmarks — ancient ruins, castles, cathedrals, battlefields, museums, memorials and more — across 28 categories, filterable, searchable, and sortable by distance from you.",
   "category": "standalone",
   "status": { "prod": "live", "dev": "live" },
   "deploy": {
     "prod": { "url": "https://historic-map.dabrewer.dev/" },
     "dev":  { "url": "https://historic-map.dabrewer.dev/dev/" }
-  }
+  },
+  "tech": ["Leaflet", "Leaflet.markercluster", "Vanilla JS", "OpenStreetMap/Nominatim", "HTML/CSS"]
 }
